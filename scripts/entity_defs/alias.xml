@@ -1,0 +1,9 @@
+<root>
+	<SkillList>FIXED_DICT
+		<Properties>
+			<list>
+				<Type>	ARRAY	<of>	UINT8	</of>	</Type>
+			</list>
+		</Properties>
+	</SkillList>
+</root>

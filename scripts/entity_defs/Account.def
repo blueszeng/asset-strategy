@@ -1,0 +1,65 @@
+<root>
+	<Volatile>
+		<position/>
+		<!--<position> 0 </position> Don't update-->
+		<yaw/>
+		<!--<pitch> 20 </pitch>-->
+		<pitch/>
+		<roll/>
+	</Volatile>
+	<Properties>
+		<WarFieldId>
+			<Type>	INT32		</Type>
+			<Flags>	CELL_PRIVATE	</Flags>
+			<Default>	-1	</Default>
+			<Persistent>	false	</Persistent>
+		</WarFieldId>
+	</Properties>
+
+	<ClientMethods>
+		<cellReady>
+		</cellReady>
+		<addNewUnit>
+			<Arg>		INT8		</Arg>
+			<Arg>		INT16		</Arg>
+			<Arg>		SkillList	</Arg>
+			<Arg>		FLOAT		</Arg>
+			<Arg>		FLOAT		</Arg>
+			<Arg>		INT64		</Arg>
+		</addNewUnit>
+		<int64>
+			<Arg>	SkillList		</Arg>
+		</int64>
+		<setMoving>
+			<Arg>		INT8		</Arg>
+		</setMoving>
+		<setSpeed>
+			<Arg>		FLOAT		</Arg>
+		</setSpeed>
+		<setDirect>
+			<Arg>		VECTOR2		</Arg>
+		</setDirect>
+		<setShift>
+			<Arg>		VECTOR2		</Arg>
+		</setShift>
+		<turnNo>
+			<Arg>		INT8		</Arg>
+		</turnNo>
+		<updateEnd>
+		</updateEnd>
+	</ClientMethods>
+
+	<BaseMethods>
+		<createSpace>
+			<Exposed/>
+		</createSpace>
+	</BaseMethods>
+
+	<CellMethods>
+		<move>
+			<Exposed/>
+			<Arg>		VECTOR2		</Arg>
+		</move>
+	</CellMethods>
+
+</root>
