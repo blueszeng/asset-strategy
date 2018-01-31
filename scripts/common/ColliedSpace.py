@@ -243,40 +243,42 @@ class XYCollied:
 				#print("in end of collied shift({0},{1})".format(circle.lastShiftx,circle.lastShifty))
 
 	
-	def CastWithCloser(self,centerX,centerY,radiu,sameOwner=0,selfid=-1):
-#selfid为-1时为sameOwner为1,或-1都没有用,selfid为阵营判断基准,sameOwner为1时判定相同
+	def CastWithCloser(self,centerX,centerY,radiu,sameOwner=0,ownerId=-1):#用于角色攻击目标判断,会省略和cast点相同坐标的圆,所以不能用来技能范围判断
+#ownerId为-1时为sameOwner为1,或-1都没有用,ownerId为阵营判断基准,sameOwner为1时判定相同
 #暂时使用线性搜寻,可能不是暂时...
 		closer=None
 		answer=[]
-		print("in cast same:{0} id:{1} record.len{2}".format(sameOwner,selfid,len(self.record)))
+		print("in cast same:{0} id:{1} record.len{2}".format(sameOwner,ownerId,len(self.record)))
 		if sameOwner==0:#无视阵营遍历
 			print("sameOwner==0")
 			for node in self.record:
 				for circle in node.subNode:
 					arrow=Vector2(circle.center.x-centerX,circle.center.y-centerY)
 					print("arrow mag{0} radiu+circle.radiu{1}".format(arrow.magnitude,radiu+circle.radiu))
-					if (closer==None or closer.magnitude>arrow.magnitude)and not selfid==circle.id:
+					if (closer==None or closer.center.magnitude>arrow.magnitude)and not arrow.magnitude==0:
+						print("closer = {0}".format(arrow.magnitude))
 						closer=circle
-					if arrow.magnitude<radiu+circle.radiu:
+					if arrow.magnitude<radiu+circle.radiu and not arrow.magnitude==0:
+						print("answer append {0}".format(arrow.magnitude))
 						answer.append(circle)
 		else:
-			if selfid==-1:
+			if ownerId==-1:
 				return {'closer':closer,'answer':answer}
 			elif sameOwner==1:#回传相同阵营
 				for node in self.record:
 					for circle in node.subNode:
 						arrow=Vector2(circle.center.x-centerX,circle.center.y-centerY)
-						if (closer==None or closer.magnitude>arrow.magnitude)and circle.ownerid==selfid:
+						if (closer==None or closer.center.magnitude>arrow.magnitude)and (circle.ownerid==ownerId and not arrow.magnitude==0):
 							closer=circle
-						if arrow.magnitude<radiu+circle.radiu and circle.ownerid==selfid:
+						if arrow.magnitude<radiu+circle.radiu and circle.ownerid==ownerId and not arrow.magnitude==0:
 							answer.append(circle)
 			elif sameOwner==-1:#回传不同阵营
 				for node in self.record:
 					for circle in node.subNode:
 						arrow=Vector2(circle.center.x-centerX,circle.center.y-centerY)
-						if (closer==None or closer.magnitude>arrow.magnitude)and not circle.ownerid==selfid:
+						if (closer==None or closer.center.magnitude>arrow.magnitude)and (not circle.ownerid==ownerId and  not arrow.magnitude==0):
 							closer=circle
-						if arrow.magnitude<radiu+circle.radiu and not circle.ownerid==selfid:
+						if arrow.magnitude<radiu+circle.radiu and not circle.ownerid==ownerId and not arrow.magnitude==0:
 							answer.append(circle)
 		return {'closer':closer,'answer':answer}
 #class XYCollied end ----------------------------------------------------------------------------------------------------------------------
