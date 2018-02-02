@@ -46,6 +46,7 @@
 			<Arg>		INT8		</Arg>
 		</turnNo>
 		<updateEnd>
+			<Arg>		INT32		</Arg>
 		</updateEnd>
 	</ClientMethods>
 

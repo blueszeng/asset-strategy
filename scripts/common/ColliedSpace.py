@@ -4,7 +4,10 @@ import sys
 
 import XYTree
 import time
-
+class Pair:
+	def __init__(self,key,value):
+		self.key=key
+		self.value=value
 class Circle:
 	def __init__(self,center,radiu,id):#id用來快速檢索closeset
 		self.center=center
@@ -209,10 +212,13 @@ class XYCollied:
 					#circle.lastShiftx+=realshift.x
 					#print("id{0} lastShift x-1:{1}".format(circle.id,circle.lastShiftx))
 				elif circle.center.x+realshift.x<=self.circles.leftBoundary:#超出左边界
-					circle.center.x+=self.circles.leftBoundary
+					realshift.x=self.circles.leftBoundary- circle.center.x
+					circle.center.x=self.circles.leftBoundary
+					#circle.center.x+=self.circles.leftBoundary
 					#circle.lastShiftx+=self.circles.leftBoundary-circle.center.x
 					#print("lastShift x-2")
 				else:#超出右边界
+					realshift.x=self.circles.rightBoundary- circle.center.x
 					circle.center.x=self.circles.rightBoundary
 					#circle.lastShiftx+=self.circles.rightBoundary-circle.center.x
 					#print("lastShift x-3")
@@ -221,10 +227,12 @@ class XYCollied:
 					#circle.lastShifty+=realshift.y
 					#print("id{0} lastShift y-1:{1}".format(circle.id,circle.lastShifty))
 				elif circle.center.y+realshift.y<=self.circles.upBoundary:#超出上边界
-					circle.center.y+=self.circles.upBoundary
+					realshift.y=self.circles.upBoundary- circle.center.y
+					circle.center.y=self.circles.upBoundary
 					#circle.lastShifty=self.circles.upBoundary-realshift.y
 					#print("lastShift y-2")
 				else:#超出下边界
+					realshift.y=self.circles.downBoundary- circle.center.y
 					circle.center.y=self.circles.downBoundary
 					#circle.lastShifty+=self.circles.downBoundary-realshift.y
 					#print("lastShift y-3")
@@ -248,18 +256,18 @@ class XYCollied:
 #暂时使用线性搜寻,可能不是暂时...
 		closer=None
 		answer=[]
-		print("in cast same:{0} id:{1} record.len{2}".format(sameOwner,ownerId,len(self.record)))
+		#print("in cast same:{0} id:{1} record.len{2}".format(sameOwner,ownerId,len(self.record)))
 		if sameOwner==0:#无视阵营遍历
-			print("sameOwner==0")
+		#	print("sameOwner==0")
 			for node in self.record:
 				for circle in node.subNode:
 					arrow=Vector2(circle.center.x-centerX,circle.center.y-centerY)
-					print("arrow mag{0} radiu+circle.radiu{1}".format(arrow.magnitude,radiu+circle.radiu))
+		#			print("arrow mag{0} radiu+circle.radiu{1}".format(arrow.magnitude,radiu+circle.radiu))
 					if (closer==None or closer.center.magnitude>arrow.magnitude)and not arrow.magnitude==0:
-						print("closer = {0}".format(arrow.magnitude))
+		#				print("closer = {0}".format(arrow.magnitude))
 						closer=circle
 					if arrow.magnitude<radiu+circle.radiu and not arrow.magnitude==0:
-						print("answer append {0}".format(arrow.magnitude))
+		#				print("answer append {0}".format(arrow.magnitude))
 						answer.append(circle)
 		else:
 			if ownerId==-1:
@@ -281,6 +289,26 @@ class XYCollied:
 						if arrow.magnitude<radiu+circle.radiu and not circle.ownerid==ownerId and not arrow.magnitude==0:
 							answer.append(circle)
 		return {'closer':closer,'answer':answer}
+	def getSortedCircleList(self,maincenter,radiu):#根据距离从近到远
+		sortList=[]
+		for node in self.record:
+				for circle in node.subNode:
+					distant= (circle.center- maincenter).magnitude
+					if len(sortList)==0:
+						sortList.append(Pair(circle,distant))
+					else:
+						for i in range(0,len(sortList)):
+							if i+1>=len(sortList):#扫到尾部
+								if sortList[i].value<distant:
+									sortList.append(Pair(circle,distant))
+								else:
+									sortList.insert(i,Pair(circle,distant))
+								break
+							elif sortList[i].value<distant and sortList[i+1].value>=distant:
+								sortList.insert(i+1,Pair(circle,distant))
+								break
+							
+		return sortList
 #class XYCollied end ----------------------------------------------------------------------------------------------------------------------
 '''
 import pygame

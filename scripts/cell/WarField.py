@@ -5,7 +5,7 @@ from KBEDebug import *
 from AI import AI
 
 unit_radiu=2
-default_debug=[Vector2(2.0,2.0),Vector2(2.0,-2.0),Vector2(-2.0,2.0)]#用于除错阶段
+default_debug=[Vector2(2.0,2.0)]#,Vector2(2.0,-2.0),Vector2(-2.0,2.0)]#用于除错阶段
 class unit:#单位物件包扩圆+转向+属性
 	@property
 	def STAND_SPEED(self):
@@ -23,6 +23,7 @@ class unit:#单位物件包扩圆+转向+属性
 		self._moving=False
 	def update(self,space):
 		if not self.AI == None:
+			print("no{0} AI update".format(self.no))
 			self.AI.update(space)
 
 	@property
@@ -39,9 +40,9 @@ class unit:#单位物件包扩圆+转向+属性
 		return self._moving
 	@moving.setter 
 	def moving(self,mov):
-		self._moving=mov
-		self.manager.setMoving(mov)
-	
+		if not mov==self._moving:
+			self._moving=mov
+			self.manager.setMoving(mov)
 	@property
 	def speed(self):
 		return self._speed
@@ -61,9 +62,15 @@ class WarField(KBEngine.Entity):
 		self.cycle=0.1#更新周期
 		self.timerId=self.addTimer(0.1,0.1,0)
 		self.shiftRecord={}
+		self.frame_num=1
 		#除错代码
 		for pos in default_debug:
 			self.newUnit(0,[],pos.x,pos.y,0)
+	def getUnit(self,no):
+		for unit in self.units:
+			if unit.no==no:
+				return unit
+		return None
 	def onTimer( self, id, userArg ):
 		#DEBUG_MSG("onUpdateBegin")
 		#先做物理判定
@@ -75,18 +82,25 @@ class WarField(KBEngine.Entity):
 			#DEBUG_MSG("circle id{0} lastShiftx:{1} lastShifty:{2} center{3}".format(unit.circle.id,unit.circle.lastShiftx,unit.circle.lastShifty,str(unit.circle.center)))
 			shift=self.shiftRecord[unit.circle.id]
 			if not shift[0]==0 or not shift[1]==0:
-				DEBUG_MSG("sefShift...")
 				self.setShift(shift)
 				self.shiftRecord[unit.circle.id]=[0,0]
 			#再做速度移动
 			if unit.moving:
 				norm=unit.direct.normalized
+				#debug代码
+				if unit.no==1:
+					DEBUG_MSG("norm is "+str(unit.direct.normalized))
+					DEBUG_MSG("slave position before is {0}".format(self.units[1].circle.center))
+				#------------------------
 				unit.circle.center.x+=norm.x*unit.speed*self.cycle
 				unit.circle.center.y+=norm.y*unit.speed*self.cycle
 				#DEBUG_MSG("norm:({2},{3}) speed:({0},{1})".format(norm.x*unit.speed*self.cycle,norm.y*unit.speed*self.cycle,norm.x,norm.y))
+			#debug代码
+			if len(self.units)>1:
+				DEBUG_MSG("slave position {0}".format(self.units[1].circle.center))
 			#再做AI
-			unit.update(self.space)
-			self.updateEnd()
+			unit.update(self)
+		self.updateEnd()
 	def newUnit(self,rolekind,skillList,posx,posy,ownerid):
 		circle=self.space.addCircle(Vector2(posx,posy),unit_radiu)
 		unitNo=circle.id
@@ -103,20 +117,27 @@ class WarField(KBEngine.Entity):
 	def playerSignOut(self,pid):
 		self.playerIds.remove(pid)
 	def setSpeed(self,new):
+		DEBUG_MSG("setSpeed")
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setSpeed(new)
 	def setDirect(self,new):
+		DEBUG_MSG("setDirect {0}".format(new))
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setDirect(new)
 	def setShift(self,new):
+		DEBUG_MSG("setShift {0}".format(new))
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setShift(new)
 	def setMoving(self,new):
+		DEBUG_MSG("setMoving")
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setMoving(new)
 	def turnNo(self,no):
+		DEBUG_MSG("turnNo")
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_turnNo(no)
 	def updateEnd(self):
+		DEBUG_MSG("update {0} end-----------------------------------------".format(self.frame_num))
+		self.frame_num+=1
 		for pid in self.playerIds:
-			KBEngine.entities[pid].p_updateEnd()
+			KBEngine.entities[pid].p_updateEnd(self.frame_num)

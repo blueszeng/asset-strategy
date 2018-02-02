@@ -43,5 +43,5 @@ class Account(KBEngine.Entity):
 		self.client.setShift((new[0],new[1]))
 	def p_turnNo(self,no):#轮到第no号角色更新状态
 		self.client.turnNo(no)
-	def p_updateEnd(self):
-		self.client.updateEnd()
+	def p_updateEnd(self,count):
+		self.client.updateEnd(count)
