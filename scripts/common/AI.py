@@ -11,6 +11,7 @@ class AI:
 		self.unit=unit
 		self.traget=None
 		self.radiu=unit_radiu#这是攻击区域半径,不是碰撞体半径
+		self.LastSortList=None#最近一次从近到远排序列
 	def update(self,manager):
 		space=manager.space
 		#print("Enter AI update {0}".format(self.unit.no))
@@ -18,6 +19,7 @@ class AI:
 		#如果没有目标(第一次)或原攻击目标超出范围
 		if self.traget==None or (self.traget.center-center).magnitude>self.radiu+self.traget.radiu:
 			list=space.getSortedCircleList(center,self.radiu)
+			self.LastSortList=list
 			for pair in list:
 				if not manager.getUnit(pair.key.id).ownerid==self.unit.ownerid:#pair.key形态是Circle,value形态是float
 					self.traget= manager.getUnit(pair.key.id).circle#把最近的那个设为目标
@@ -35,3 +37,7 @@ class AI:
 		else:#有一个合理的攻击目标
 			self.unit.moving=False
 			print("has traget already--3")
+class Event:
+	def __init__(self,funcion,arg):
+		self.funcion=funcion
+		self.arg=arg

@@ -3,9 +3,41 @@ import Math
 from ColliedSpace import *
 from KBEDebug import *
 from AI import AI
+from AI import Event
+from skilllist import skillList
+from skill import skill
+from damage import damage
 
 unit_radiu=2
 default_debug=[Vector2(2.0,2.0)]#,Vector2(2.0,-2.0),Vector2(-2.0,2.0)]#用于除错阶段
+class time_resign:
+	def __init__(self,time,fuction,arg):
+		self.timeLeft=time
+		self.fuction=fuction
+		self.arg=arg
+	def update(time):
+		self.timeLeft-=time
+		if self.timeLeft<=0:
+			self.fuction(arg)
+			return True #ture代表已经呼叫了fuction可以删除了
+		else:
+			return False
+class arrow_resign:
+	def __init__(self,speed,traget,oriPos,function,arg):
+		self.speed=speed
+		self.fuction=fuction
+		self.arg=arg
+		self.traget=traget
+		self.position=oriPos
+	def update(time):
+		tragetPos= traget.circle.center
+		distant=Vector2.betw
+		if Vector2.distantBetween(self.position,tragetPos)-traget.circle.radiu <= self.speed*time:#
+			self.function(arg)
+			return True
+		else:
+			self.position+=(tragetPos-self.position).normalized*self.speed*time
+
 class unit:#单位物件包扩圆+转向+属性
 	@property
 	def STAND_SPEED(self):
@@ -19,13 +51,50 @@ class unit:#单位物件包扩圆+转向+属性
 		#DEBUG_MSG("in unit ownerid is:{0} so owner is".format(ownerid,KBEngine.entities[ownerid]))
 		self.AI=AI(self,AI.NEAR_RANGE(unit_radiu))
 		self._direct=Vector2(0,0)
-		self._speed=self.STAND_SPEED
 		self._moving=False
+		self.events=[]
+		self.skills=[]
+		#註冊的觸發方法
+		self.f_beforeBeenSkill=[]
+		self.f_afterBeenSkill=[]
+		self.f_beforeTakeDamage=[]
+		self.f_afterTakeDamage=[]
+		self.f_beforeCauseDamage=[]
+		self.f_afterCauseDamage=[]
+		self.f_beforeSkill=[]
+		self.f_afterSkill=[]
+		#属性变量
+		self._speed=self.STAND_SPEED
+		self._hp=100
+	def initSkill(self,list):
+		for i in range(0,len(list)):
+			nowSkill=skillList[list[i]](self.circle.radiu,self,i)
+			#主動技能不註冊
+			#註冊觸發方法
+			if nowSkill.kind==skill.BEFORE_BEEN_ATTACK():
+				self.f_beforeBeenSkill.append(nowSkill.trigger)
+			elif nowSkill.kind==skill.AFTER_BEEN_ATTACK():
+				self.f_afterBeenSkill.append(nowSkill.trigger)
+			elif nowSkill.kind==skill.BEFORE_TAKE_DAMAGE():
+				self.f_beforeBeenSkill.append(nowSkill.trigger)
+			elif nowSkill.kind==skill.AFTER_TAKE_DAMAGE():
+				self.f_afterBeenSkill.append(nowSkill.trigger)
+			elif nowSkill.kind==skill.AFTER_TAKE_DAMAGE():
+				self.f_afterBeenSkill.append(nowSkill.trigger)
+			elif nowSkill.kind==skill.BEFORE_SKILL():
+				self.f_beforeSkill.append(nowSkill.trigger)
+			elif nowSkill.kind==skill.AFTER_SKILL():
+				self.f_afterSkill.append(nowSkill.trigger)
+	def initProperty(self,power,intel,armor,sp_armor,physique):
+		self.power=power
+		self.intel=intel
+		self.armor=armor
+		self.sp_armor=sp_armor
+		self.physique=physique
 	def update(self,space):
 		if not self.AI == None:
 			print("no{0} AI update".format(self.no))
 			self.AI.update(space)
-
 	@property
 	def direct(self):
 		return self._direct
@@ -50,6 +119,51 @@ class unit:#单位物件包扩圆+转向+属性
 	def speed(self,sp):
 		self._speed=sp
 		self.manager.setSpeed(self.no,sp)
+	@property
+	def speed(self):
+		return self._speed
+	@speed.setter 
+	def speed(self,sp):
+		self._speed=sp
+		self.manager.setSpeed(self.no,sp)
+	@property
+	def hp(self):
+		return self._hp
+	@speed.setter 
+	def hp(self,sp):
+		self._hp=sp
+	def SkillTo(self,skill,tragetNo):
+		traget=manager.getUnit(tragetNo)
+		arg=[traget,skill]
+		for skill in self.f_beforeSkill:
+				skill(arg)
+		for skill in traget.f_beforeBeenSkill:
+				skill(arg)
+	def AfterSkillTo(self,skill,tragetNo)
+		traget=manager.getUnit(tragetNo)
+		arg=[traget,skill]
+		for skill in self.f_beforeSkill:
+			skill.trigger(arg)
+		for skill in traget.f_beforeBeenSkill:
+			skill.trigger(arg)
+	def takeDamage(self,damage):
+		for fuction in self.f_beforeTakeDamage:
+			function(damage)
+		if damage.exist:
+			self.hp-=damage.num
+		for fuction in self.f_beforeTakeDamage:
+			function(damage)
+	def causeDamage(tragetNo,kind,num):
+		traget=self.manager.getUnit(tragetNo)
+		if kind==damage.ATTACK_DAMAGE():
+			num+=num*(self.power/100)
+		elif kind==damage.SPECIAL_DAMAGE():
+			num+=num*(self.intel/100)
+		for fuction in self.f_beforeCauseDamage:
+			function([traget,damage])
+		traget.takeDamage(damage(kind,num,self))
+		for fuction in self.f_afterCauseDamage:
+			function([traget,damage])
 class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
 		self.shiftRecord[no]=[x,y]
@@ -58,6 +172,7 @@ class WarField(KBEngine.Entity):
 		DEBUG_MSG("WarField Cell done")
 		self.space=XYCollied(2,4,-4*unit_radiu,-8*unit_radiu,4*unit_radiu,4*unit_radiu,self.shiftCallBack)#圆半径是10,格子宽度是两个圆也就是10*2 *2
 		self.units=[]
+		self.resigns=[]
 		self.playerIds=[]
 		self.cycle=0.1#更新周期
 		self.timerId=self.addTimer(0.1,0.1,0)
@@ -75,6 +190,13 @@ class WarField(KBEngine.Entity):
 		#DEBUG_MSG("onUpdateBegin")
 		#先做物理判定
 		self.space.Collied()
+		#主動技能觸發
+		for unit in self.units:
+			for s in self.skills:
+				s.timeLeft-=self.manager.cycle
+			for s in self.skills:
+				if s.kind == skill.ACTIVE():
+					s.trigger(None)#canUse自己在方法裏面判斷
 		for unit in self.units:#主逻辑回圈,更新单位的AI,将单位速度和位移传给客户端
 			#DEBUG_MSG("unit{0} center is {1}".format(unit.no,unit.circle.center))
 			self.turnNo(unit.no)#该单位的更新周期开始
@@ -100,6 +222,7 @@ class WarField(KBEngine.Entity):
 				DEBUG_MSG("slave position {0}".format(self.units[1].circle.center))
 			#再做AI
 			unit.update(self)
+		for 
 		self.updateEnd()
 	def newUnit(self,rolekind,skillList,posx,posy,ownerid):
 		circle=self.space.addCircle(Vector2(posx,posy),unit_radiu)
@@ -136,8 +259,21 @@ class WarField(KBEngine.Entity):
 		DEBUG_MSG("turnNo")
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_turnNo(no)
+	def useSkill(self,skillIndex,tragetNo):
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_useSkill(skillIndex,tragetNo)
+	def takeDamage(self,num):
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_takeDamage(num)
+	def beTreat(self,num):
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_beTreat(num)
 	def updateEnd(self):
 		DEBUG_MSG("update {0} end-----------------------------------------".format(self.frame_num))
 		self.frame_num+=1
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_updateEnd(self.frame_num)
+	def signUpTime(self,time,fuction,arg):
+		self.resigns.append(time_resign(time,function,arg))
+	def signUpArrow(self,speed,traget,oriPos,function,arg):
+		self.resigns.append(arrow_resign(speed,traget,oriPos,function,arg))
