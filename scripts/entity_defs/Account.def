@@ -64,8 +64,10 @@
 		</beRepel>
 		<addBuff>
 			<Arg>		INT8		</Arg>
-			<Arg>		FLOAT		</Arg>
 		</addBuff>
+		<delBuff>
+			<Arg>		INT8		</Arg>
+		</delBuff>
 	</ClientMethods>
 
 	<BaseMethods>

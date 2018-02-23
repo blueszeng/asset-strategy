@@ -54,5 +54,7 @@ class Account(KBEngine.Entity):
 		self.client.beTreat(num)
 	def p_beRepel(self,arraw,time):#arraw是Vector2
 		self.client.beRepel((arraw.x,arraw.y),time)
-	def p_addBuff(self,buffno,time):
-		self.client.addBuff(buffno,time)
+	def p_addBuff(self,buffno):
+		self.client.addBuff(buffno)
+	def p_deleteBuff(self,buffno):
+		self.client.delBuff(buffno)

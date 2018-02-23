@@ -8,6 +8,7 @@ from skilllist import skillList
 from skill import Skill
 from damage import Damage
 import skillNumberList
+import buffList
 
 unit_radiu=2
 default_debug=[Vector2(5.0,5.0),Vector2(5.0,-5.0),Vector2(-5.0,5.0)]#用于除错阶段
@@ -33,7 +34,7 @@ class Repel:
 	def update(self,time):
 		self.timeLeft-=time
 		DEBUG_MSG("in repel timeLeft:{0}".format(self.timeLeft))
-		if round(self.timeLeft,4) >= 0:
+		if round(self.timeLeft,4) >= 0:#取4位整数
 			self.unit.circle.center.x+=self.speed[0]*time
 			self.unit.circle.center.y+=self.speed[1]*time
 		else:
@@ -84,7 +85,9 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self._moving=False
 		self.events=[]
 		self.skills=[]
+		self.buffs={}#用buff的no作为索引值的字典,添加buff和消除buff都只传buff的no这样做的坏处是一个角色身上同一种的buff只会有一个
 		#註冊的觸發方法
+		self.disabledBuffNo=[]#用于清除buff,因为在回圈中del会报长度改变错误
 		self.f_beforeBeenSkill=[]
 		self.f_afterBeenSkill=[]
 		self.f_beforeTakeDamage=[]
@@ -140,11 +143,17 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.physique=physique
 		self.AI=AI(self,range)
 	def update(self,space):
-		if not self.AI == None:
+		if not self.AI == None:#更新AI
 			#print("no{0} AI update".format(self.no))
 			self.AI.update(space)
-		if not self.repel == None:
+		if not self.repel == None:#更新repel
 			self.repel.update(self.manager.cycle)
+		for buff in self.buffs.values():
+			buff.update(self.manager.cycle)
+		#清理这一帧失效的buff
+		for no in self.disabledBuffNo:
+			del	self.buffs[no]
+		self.disabledBuffNo=[]
 	@property
 	def direct(self):
 		return self._direct
@@ -234,6 +243,14 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		traget.takeDamage(newd)
 		for function in self.f_afterCauseDamage:
 			function([traget,newd])
+	def addBuff(self,buffClass,time,creater):
+		#other.buffs[buffList.burn.no()]=buffList.burn(5,other,self.unit)#添加一个新的燃烧buff
+		buff=buffClass(time,self,creater)
+		self.buffs[buff.no()]=buff
+		self.events.append(Event(self.manager.addBuff,buff.no()))
+	def deleteBuff(self,buff):
+		self.disabledBuffNo.append(buff.no())
+		self.events.append(Event(self.manager.deleteBuff,buff.no()))
 class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
 		self.shiftRecord[no]=[x,y]
@@ -355,9 +372,12 @@ class WarField(KBEngine.Entity):
 	def beRepel(self,list):
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_beRepel(list[0],list[1])
-	def addBuff(self,list):
+	def addBuff(self,buffNo):
 		for pid in self.playerIds:
-			KBEngine.entities[pid].p_addBuff(list[0],list[1])
+			KBEngine.entities[pid].p_addBuff(buffNo)
+	def deleteBuff(self,buffNo):
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_deleteBuff(buffNo)
 	def updateEnd(self):
 		DEBUG_MSG("update {0} end-----------------------------------------".format(self.frame_num))
 		for pid in self.playerIds:

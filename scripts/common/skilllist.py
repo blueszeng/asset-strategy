@@ -5,6 +5,7 @@ from ColliedSpace import Vector2
 import WarField
 import math
 import random
+import buffList
 class no1_ATK(Skill):
 	@property
 	def No(self):
@@ -205,11 +206,17 @@ class no6_hotWave(Skill):
 				if pair.value > self.range +pair.key.radiu:#因为是从小到大排序的list所以一旦出现比目标大的数之后只会更大
 					break
 				#如果还在范围内
-				elif not self.unit.manager.getUnit(pair.key.id).ownerid==self.unit.ownerid:#其他队角色
-					arraw=(pair.key.center-self.unit.circle.center).normalized
-					distant=Vector2(arraw.x*5,arraw.y*5)
-					self.unit.manager.getUnit(pair.key.id).repel.begin(distant,0.3,None,None)
-					self.cdLeft=self.coolDown
+				else:
+					other=self.unit.manager.getUnit(pair.key.id)
+					if not other.ownerid==self.unit.ownerid:#其他队角色
+						arraw=(pair.key.center-self.unit.circle.center).normalized
+						distant=Vector2(arraw.x*5,arraw.y*5)
+						self.unit.manager.getUnit(pair.key.id).repel.begin(distant,0.3,None,None)
+						self.cdLeft=self.coolDown
+						if buffList.burn.no() in other.buffs.keys():#已经有buff burn 了
+							other.buffs[buffList.burn.no()].timeLeft=5#重置之前燃烧的持续时间
+						else:
+							other.addBuff(buffList.burn,5,self.unit)
 			self.unit.AfterSkillTo(self,self.unit.no)
 	def onTime(self,time):
 		self.cdLeft-=time
