@@ -5,7 +5,7 @@ class AI:
 		return 1.5*radiu
 	@staticmethod
 	def FAR_RANGE(radiu):
-		return 3.5*radiu
+		return 5*radiu
 		
 	def __init__(self,unit,unit_radiu):
 		self.unit=unit
@@ -16,10 +16,12 @@ class AI:
 		space=manager.space
 		#print("Enter AI update {0}".format(self.unit.no))
 		center=self.unit.circle.center
+		list=space.getSortedCircleList(center,self.radiu)
+#					for pair in list:
+#				print("circle "+str(pair.key.id)+" distance:"+str(pair.value))
+		self.LastSortList=list
 		#如果没有目标(第一次)或原攻击目标超出范围
 		if self.traget==None or (self.traget.center-center).magnitude>self.radiu+self.traget.radiu:
-			list=space.getSortedCircleList(center,self.radiu)
-			self.LastSortList=list
 			for pair in list:
 				if not manager.getUnit(pair.key.id).ownerid==self.unit.ownerid:#pair.key形态是Circle,value形态是float
 					self.traget= manager.getUnit(pair.key.id).circle#把最近的那个设为目标

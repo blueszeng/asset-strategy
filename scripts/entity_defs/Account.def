@@ -48,6 +48,24 @@
 		<updateEnd>
 			<Arg>		INT32		</Arg>
 		</updateEnd>
+		<takeDamage>
+			<Arg>		INT8		</Arg>
+		</takeDamage>
+		<useSkill>
+			<Arg>		INT8		</Arg>
+			<Arg>		INT8		</Arg>
+		</useSkill>
+		<beTreat>
+			<Arg>		INT8		</Arg>
+		</beTreat>
+		<beRepel>
+			<Arg>		VECTOR2		</Arg>
+			<Arg>		FLOAT		</Arg>
+		</beRepel>
+		<addBuff>
+			<Arg>		INT8		</Arg>
+			<Arg>		FLOAT		</Arg>
+		</addBuff>
 	</ClientMethods>
 
 	<BaseMethods>

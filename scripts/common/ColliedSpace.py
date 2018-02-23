@@ -15,6 +15,9 @@ class Circle:
 		self.id=id
 		self.lastShiftx=0
 		self.lastShifty=0
+		self.lastFrameClosers=[]
+		self.f_onColliedIn=[]
+		
 	def __str__(self):
 		return "id:"+str(self.id)+":"+str(self.center)+"radiu:"+str(self.radiu)
 
@@ -48,7 +51,12 @@ class Vector2:
 		#print("in angle first *second is{0}".format(first*second))
 		#print("first mag:{0} second mag:{1}".format(first.magnitude,second.magnitude))
 		#print("before acos ans is:{0}".format((first*second)/(first.magnitude*second.magnitude)))
-		return math.acos((first*second)/(first.magnitude*second.magnitude))
+		before=(first*second)/(first.magnitude*second.magnitude)
+		if before>1 and before <1.0001:#去误差处理,之前有出现过因为1.000000002报数学范围错误的问题
+			before=1
+		elif before<-1 and before>-1.0001:
+			before=-1
+		return math.acos(before)
 	def scaleWith(self,constant):
 		self.x*=constant
 		self.y*=constant
@@ -117,6 +125,12 @@ class XYCollied:
 					distant=Vector2.distantBetween(circle.center,other.center)
 					if distant <=(circle.radiu+other.radiu):#距離小於等於半徑之和說明相交或相鄰
 						self.closeSet[circle.id].closer.append(other)
+						#如果上一帧记录中没有此圆
+						if other not in circle.lastFrameClosers:
+							for function in  circle.f_onColliedIn:
+								function(other)#逐个呼叫onColliedIn中的callback
+		#记录closer到lastFrameClosers
+		circle.lastFrameClosers=self.closeSet[circle.id].closer
 		#給自己一個位移
 		
 		self.closeSet[circle.id].shift+=shift
@@ -174,6 +188,13 @@ class XYCollied:
 							distant=Vector2.distantBetween(circle.center,other.center)
 							if distant <=(circle.radiu+other.radiu):#距離小於等於半徑之和說明相交或相鄰
 								self.closeSet[circle.id].closer.append(other)
+								#如果上一帧记录中没有此圆
+								if other not in circle.lastFrameClosers:
+									for function in  circle.f_onColliedIn:
+										function(other)#逐个呼叫onColliedIn中的callback
+				#记录closer到lastFrameClosers
+				circle.lastFrameClosers=self.closeSet[circle.id].closer
+				#print("bf cal circle{0} position is{1}".format(circle.id,circle.center))
 				#对所有与当前圆相邻的圆计算击退---------------------------------------------------------------
 				for other in self.closeSet[circle.id].closer:
 					#print("XYCollied {0}{1}->{2}{3}-------------------------------".format(circle.id,circle.center,other.id,other.center))
@@ -201,14 +222,18 @@ class XYCollied:
 					#反击退自己--------------------------------------
 					over=[other]#放other是为了省一个angleBetween,因为短路效应当第一条件not in overSet失败之后就直接跳出了
 					self.ColliedWith(-orishift,circle,over)#反击退方向相反所以加一个负号
+			print("aft cal circle{0} position is{1}".format(circle.id,circle.center))
 		#print("end collied-------------------------------------")
 		for node in self.record:
 			for circle in node.subNode:
 				oriPos=circle.center
 				realshift=self.closeSet[circle.id].shift
+				#print("no{1} realshift{0}".format(realshift,circle.id))
 				#计算是否超过边界
 				if circle.center.x+realshift.x>self.circles.leftBoundary and circle.center.x+realshift.x<self.circles.rightBoundary:#在边界内
+					#print("in add shift center{0} realshift{1}".format(circle.center,realshift.x))
 					circle.center.x+=realshift.x
+					#print("after add center.x:{0}".format(circle.center.x))
 					#circle.lastShiftx+=realshift.x
 					#print("id{0} lastShift x-1:{1}".format(circle.id,circle.lastShiftx))
 				elif circle.center.x+realshift.x<=self.circles.leftBoundary:#超出左边界
@@ -216,12 +241,12 @@ class XYCollied:
 					circle.center.x=self.circles.leftBoundary
 					#circle.center.x+=self.circles.leftBoundary
 					#circle.lastShiftx+=self.circles.leftBoundary-circle.center.x
-					#print("lastShift x-2")
+					print("lastShift x-2")
 				else:#超出右边界
 					realshift.x=self.circles.rightBoundary- circle.center.x
 					circle.center.x=self.circles.rightBoundary
 					#circle.lastShiftx+=self.circles.rightBoundary-circle.center.x
-					#print("lastShift x-3")
+					print("lastShift x-3")
 				if circle.center.y+realshift.y>self.circles.upBoundary and circle.center.y+realshift.y<self.circles.downBoundary: #在边界内
 					circle.center.y+=realshift.y
 					#circle.lastShifty+=realshift.y
@@ -230,12 +255,12 @@ class XYCollied:
 					realshift.y=self.circles.upBoundary- circle.center.y
 					circle.center.y=self.circles.upBoundary
 					#circle.lastShifty=self.circles.upBoundary-realshift.y
-					#print("lastShift y-2")
+					print("lastShift y-2")
 				else:#超出下边界
 					realshift.y=self.circles.downBoundary- circle.center.y
 					circle.center.y=self.circles.downBoundary
 					#circle.lastShifty+=self.circles.downBoundary-realshift.y
-					#print("lastShift y-3")
+					print("lastShift y-3")
 				self.shiftCallBack(circle.id,realshift.x,realshift.y)
 				#改变XYTree
 				self.closeSet[circle.id].shift=Vector2(0,0)
@@ -248,8 +273,11 @@ class XYCollied:
 					newnode.subNode.append(circle)
 					if not newnode in self.record:
 						self.record.append(newnode)
+				#print("in the circle end circle.center{0} id{1}".format(circle.center,id(circle.center)))
 				#print("in end of collied shift({0},{1})".format(circle.lastShiftx,circle.lastShifty))
-
+		for node in self.record:
+			for circle in node.subNode:
+				print("in the end circle.center{0} id{1}".format(circle.center,id(circle.center)))
 	
 	def CastWithCloser(self,centerX,centerY,radiu,sameOwner=0,ownerId=-1):#用于角色攻击目标判断,会省略和cast点相同坐标的圆,所以不能用来技能范围判断
 #ownerId为-1时为sameOwner为1,或-1都没有用,ownerId为阵营判断基准,sameOwner为1时判定相同
