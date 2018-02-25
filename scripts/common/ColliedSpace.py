@@ -222,7 +222,7 @@ class XYCollied:
 					#反击退自己--------------------------------------
 					over=[other]#放other是为了省一个angleBetween,因为短路效应当第一条件not in overSet失败之后就直接跳出了
 					self.ColliedWith(-orishift,circle,over)#反击退方向相反所以加一个负号
-			print("aft cal circle{0} position is{1}".format(circle.id,circle.center))
+			#print("aft cal circle{0} position is{1}".format(circle.id,circle.center))
 		#print("end collied-------------------------------------")
 		for node in self.record:
 			for circle in node.subNode:
@@ -275,9 +275,9 @@ class XYCollied:
 						self.record.append(newnode)
 				#print("in the circle end circle.center{0} id{1}".format(circle.center,id(circle.center)))
 				#print("in end of collied shift({0},{1})".format(circle.lastShiftx,circle.lastShifty))
-		for node in self.record:
-			for circle in node.subNode:
-				print("in the end circle.center{0} id{1}".format(circle.center,id(circle.center)))
+		#for node in self.record:
+		#	for circle in node.subNode:
+		#		print("in the end circle.center{0} id{1}".format(circle.center,id(circle.center)))
 	
 	def CastWithCloser(self,centerX,centerY,radiu,sameOwner=0,ownerId=-1):#用于角色攻击目标判断,会省略和cast点相同坐标的圆,所以不能用来技能范围判断
 #ownerId为-1时为sameOwner为1,或-1都没有用,ownerId为阵营判断基准,sameOwner为1时判定相同
@@ -317,7 +317,7 @@ class XYCollied:
 						if arrow.magnitude<radiu+circle.radiu and not circle.ownerid==ownerId and not arrow.magnitude==0:
 							answer.append(circle)
 		return {'closer':closer,'answer':answer}
-	def getSortedCircleList(self,maincenter,radiu):#根据距离从近到远
+	def getSortedCircleList(self,maincenter):#根据距离从近到远
 		sortList=[]
 		for node in self.record:
 				for circle in node.subNode:

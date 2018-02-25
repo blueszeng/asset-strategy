@@ -100,6 +100,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.f_afterHealing=[]
 		self.f_beforeBeenHealing=[]
 		self.f_afterBeenHealing=[]
+		self.LastSortList=None
 		#属性变量
 		self._speed=self.STAND_SPEED
 		self._hp=100
@@ -142,10 +143,11 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.armor_kind=armor_kind
 		self.physique=physique
 		self.AI=AI(self,range)
-	def update(self,space):
+	def update(self,manager):
+		self.LastSortList=manager.space.getSortedCircleList(self.circle.center)
 		if not self.AI == None:#更新AI
 			#print("no{0} AI update".format(self.no))
-			self.AI.update(space)
+			self.AI.update(manager)
 		if not self.repel == None:#更新repel
 			self.repel.update(self.manager.cycle)
 		for buff in self.buffs.values():
@@ -265,6 +267,7 @@ class WarField(KBEngine.Entity):
 		self.timerId=self.addTimer(0.1,0.1,0)
 		self.shiftRecord={}
 		self.frame_num=1
+		self.run=False
 		#除错代码
 		i=0
 		for pos in default_debug:
@@ -276,50 +279,52 @@ class WarField(KBEngine.Entity):
 				return unit
 		return None
 	def onTimer( self, id, userArg ):
-		#先做物理判定
-		self.space.Collied()
-		#處理之前註冊的record
-		for record in self.resigns:
-			if record.update(self.cycle):
-				self.resigns.remove(record)
-		#主動技能觸發
-		for unit in self.units:
-			for s in unit.skills:
-				s.onTime(self.cycle)
-			for s in unit.skills:
-				if s.kind == Skill.ACTIVE():
-					s.trigger(None)#canUse自己在方法裏面判斷
-		for unit in self.units:#主逻辑回圈,更新单位的AI,将单位速度和位移传给客户端
-			#DEBUG_MSG("unit{0} center is {1}".format(unit.no,unit.circle.center))
-			self.turnNo(unit.no)#该单位的更新周期开始
-			#更新技能
-			print("no{0} events has {1} event".format(unit.no,len(unit.events)))
-			for event in unit.events:
-				event.funcion(event.arg)
-				unit.events.remove(event)
-			#发送挤压的击退值
-			#DEBUG_MSG("circle id{0} lastShiftx:{1} lastShifty:{2} center{3}".format(unit.circle.id,unit.circle.lastShiftx,unit.circle.lastShifty,str(unit.circle.center)))
-			shift=self.shiftRecord[unit.circle.id]
-			if not shift[0]==0 or not shift[1]==0:
-				self.setShift(shift)
-				self.shiftRecord[unit.circle.id]=[0,0]
-			#再做速度移动
-			if unit.moving:
-				norm=unit.direct.normalized
+		if self.run:
+			#先做物理判定
+			self.space.Collied()
+			#處理之前註冊的record
+			for record in self.resigns:
+				if record.update(self.cycle):
+					self.resigns.remove(record)
+			#主動技能觸發
+			for unit in self.units:
+				for s in unit.skills:
+					s.onTime(self.cycle)
+				for s in unit.skills:
+					if s.kind == Skill.ACTIVE():
+						s.trigger(None)#canUse自己在方法裏面判斷
+			for unit in self.units:#主逻辑回圈,更新单位的AI,将单位速度和位移传给客户端
+				#DEBUG_MSG("unit{0} center is {1}".format(unit.no,unit.circle.center))
+				self.turnNo(unit.no)#该单位的更新周期开始
+				#更新技能
+				print("no{0} events has {1} event".format(unit.no,len(unit.events)))
+				for event in unit.events:
+					print(event.funcion)
+					event.funcion(event.arg)
+				unit.events.clear()
+				#发送挤压的击退值
+				#DEBUG_MSG("circle id{0} lastShiftx:{1} lastShifty:{2} center{3}".format(unit.circle.id,unit.circle.lastShiftx,unit.circle.lastShifty,str(unit.circle.center)))
+				shift=self.shiftRecord[unit.circle.id]
+				if not shift[0]==0 or not shift[1]==0:
+					self.setShift(shift)
+					self.shiftRecord[unit.circle.id]=[0,0]
+				#再做速度移动
+				if unit.moving:
+					norm=unit.direct.normalized
+					#debug代码
+					#DEBUG_MSG("no{0}".format(unit.no))
+					#DEBUG_MSG("norm is "+str(unit.direct.normalized))
+					#------------------------
+					unit.circle.center.x+=norm.x*unit.speed*self.cycle
+					unit.circle.center.y+=norm.y*unit.speed*self.cycle
+					#DEBUG_MSG("norm:({2},{3}) speed:({0},{1})".format(norm.x*unit.speed*self.cycle,norm.y*unit.speed*self.cycle,norm.x,norm.y))
 				#debug代码
-				#DEBUG_MSG("no{0}".format(unit.no))
-				#DEBUG_MSG("norm is "+str(unit.direct.normalized))
-				#------------------------
-				unit.circle.center.x+=norm.x*unit.speed*self.cycle
-				unit.circle.center.y+=norm.y*unit.speed*self.cycle
-				#DEBUG_MSG("norm:({2},{3}) speed:({0},{1})".format(norm.x*unit.speed*self.cycle,norm.y*unit.speed*self.cycle,norm.x,norm.y))
-			#debug代码
-			#DEBUG_MSG("position after is {0}".format(unit.circle.center))
-			#再做AI
-			unit.update(self)
-		for unit in self.units:
-			DEBUG_MSG("no{0} final position:{1}".format(unit.no,unit.circle.center))
-		self.updateEnd()
+				#DEBUG_MSG("position after is {0}".format(unit.circle.center))
+				#再做AI
+				unit.update(self)
+			for unit in self.units:
+				DEBUG_MSG("no{0} final position:{1}".format(unit.no,unit.circle.center))
+			self.updateEnd()
 	def newUnit(self,rolekind,posx,posy,ownerid):
 		circle=self.space.addCircle(Vector2(posx,posy),unit_radiu)
 		unitNo=circle.id
@@ -335,6 +340,7 @@ class WarField(KBEngine.Entity):
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
 		rolekind=1
+		self.run=True
 		#除错代码
 		for unit in self.units:
 			KBEngine.entities[pid].p_addnewUnit(unit.no,rolekind,skillNumberList.list[rolekind],unit.circle.center.x,unit.circle.center.y,0)
