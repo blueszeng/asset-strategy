@@ -9,23 +9,60 @@ class Pair:
 		self.key=key
 		self.value=value
 class Circle:
-	def __init__(self,center,radiu,id):#id用來快速檢索closeset
-		self.center=center
+	@property
+	def center(self):
+		return self._center
+	@center.setter
+	def center(self,new):
+		x=self._center.x
+		y=self._center.y
+		self._center=new
+		self.lastX=x
+		self.lastY=y
+		if not self.onCenterChange==None:
+			self.onCenterChange(self)
+	def centerChange(self,oriX,oriY,v):#参数是Vector2
+		self.lastX=oriX
+		self.lastY=oriY
+		self.onCenterChange(self)
+	def __init__(self,center,radiu,id,callBack=None):#id用來快速檢索closeset
+		self.onCenterChange=callBack#当圆心改变时呼叫,参数是Circle
+		self._center=center
+		self._center.onChange=self.centerChange#这样是因为直接改center.x或y时不会触发魔术方法
 		self.radiu=radiu 
 		self.id=id
 		self.lastShiftx=0
 		self.lastShifty=0
 		self.lastFrameClosers=[]
 		self.f_onColliedIn=[]
-		
+		self.f_onCenterChange=[]
 	def __str__(self):
 		return "id:"+str(self.id)+":"+str(self.center)+"radiu:"+str(self.radiu)
 
 class Vector2:
-	def __init__(self,x,y):
-		self.x=x
-		self.y=y
+	def __init__(self,x,y,callBack=None):
+		self._x=x
+		self._y=y
 		self.magnitude=math.sqrt(x*x+y*y)#向量長度
+		self.onChange=callBack
+	@property
+	def x(self):
+		return self._x
+	@x.setter
+	def x(self,new):
+		oriX=self._x
+		self._x=new
+		if not self.onChange==None:
+			self.onChange(oriX,self._y,self)
+	@property
+	def y(self):
+		return self._y
+	@y.setter
+	def y(self,new):
+		oriY=self._y
+		self._y=new
+		if not self.onChange==None:
+			self.onChange(self._x,oriY,self)
 	@property
 	def normalized(self):
 		if self.magnitude==0:
@@ -76,13 +113,29 @@ class XYCollied:
 		self.closeSet={}
 		self.halfdiagonal=math.sqrt((width/2)*(width/2)+(height/2)*(height/2))#半斜角距离
 		self.shiftCallBack=shiftCallBack
+	def onCircleChange(self,circle):
+		print("::: onCircleChange be call :::")
+		if not self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y):#如果移动之后会进入一个新的区域
+			node=self.circles.getNode(circle.lastX,circle.lastY)
+			node.subNode.remove(circle)
+			if len(node.subNode)==0:
+				self.record.remove(node)
+			newnode=self.circles.getNode(circle.center.x,circle.center.y)
+			newnode.subNode.append(circle)
+			if not newnode in self.record:
+				self.record.append(newnode)
 	def addCircle(self,position,radiu):
 		if	len(self.circles.getNode(position.x,position.y).subNode)==0:#如果node里没有装载节点
 			self.record.append(self.circles.getNode(position.x,position.y))
-		circle=Circle(position,radiu,self.totalNum)
-		self.circles.addUnit(position.x,position.y,Circle(position,radiu,self.totalNum))
+		circle=Circle(position,radiu,self.totalNum,self.onCircleChange)
+		self.circles.addUnit(position.x,position.y,circle)
 		self.totalNum+=1
 		return circle
+	def delCircle(self,circle):
+		node=self.circles.getNode(circle.center.x,circle.center.y).subNode
+		node.remove(circle)
+		if len(node)==0:
+			record.remove(node)
 	def ColliedWith(self,shift,circle,overSet):#用於遞迴分散位移
 #建立CloseSet----------------------------------------------------------------------
 		if(not circle.id in self.closeSet):#還未記錄自己的與相鄰列表
@@ -232,7 +285,8 @@ class XYCollied:
 				#计算是否超过边界
 				if circle.center.x+realshift.x>self.circles.leftBoundary and circle.center.x+realshift.x<self.circles.rightBoundary:#在边界内
 					#print("in add shift center{0} realshift{1}".format(circle.center,realshift.x))
-					circle.center.x+=realshift.x
+					if not realshift.x == 0:
+						circle.center.x+=realshift.x
 					#print("after add center.x:{0}".format(circle.center.x))
 					#circle.lastShiftx+=realshift.x
 					#print("id{0} lastShift x-1:{1}".format(circle.id,circle.lastShiftx))
@@ -248,7 +302,8 @@ class XYCollied:
 					#circle.lastShiftx+=self.circles.rightBoundary-circle.center.x
 					print("lastShift x-3")
 				if circle.center.y+realshift.y>self.circles.upBoundary and circle.center.y+realshift.y<self.circles.downBoundary: #在边界内
-					circle.center.y+=realshift.y
+					if not realshift.y == 0:
+						circle.center.y+=realshift.y
 					#circle.lastShifty+=realshift.y
 					#print("id{0} lastShift y-1:{1}".format(circle.id,circle.lastShifty))
 				elif circle.center.y+realshift.y<=self.circles.upBoundary:#超出上边界
@@ -265,14 +320,7 @@ class XYCollied:
 				#改变XYTree
 				self.closeSet[circle.id].shift=Vector2(0,0)
 				#print("shift为:"+str(self.closeSet[circle.id].shift))
-				if not self.circles.inSameArea(oriPos.x,oriPos.y,circle.center.x,circle.center.y):#如果移动之后会进入一个新的区域
-					node.subNode.remove(circle)
-					if len(node.subNode)==0:
-						self.record.remove(node)
-					newnode=self.circles.getNode(circle.center.x,circle.center.y)
-					newnode.subNode.append(circle)
-					if not newnode in self.record:
-						self.record.append(newnode)
+
 				#print("in the circle end circle.center{0} id{1}".format(circle.center,id(circle.center)))
 				#print("in end of collied shift({0},{1})".format(circle.lastShiftx,circle.lastShifty))
 		#for node in self.record:

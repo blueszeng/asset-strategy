@@ -58,3 +58,5 @@ class Account(KBEngine.Entity):
 		self.client.addBuff(buffno)
 	def p_deleteBuff(self,buffno):
 		self.client.delBuff(buffno)
+	def p_died(self):
+		self.client.died()

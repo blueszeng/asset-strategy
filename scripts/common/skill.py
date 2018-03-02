@@ -41,6 +41,18 @@ class Skill:
 	@staticmethod
 	def AFTER_BEEN_HEAL():
 		return 13
+	@staticmethod
+	def BEORE_DIED():
+		return 14
+	@staticmethod
+	def AFTER_DIED():
+		return 15
+	@staticmethod
+	def BEFORE_KILL():
+		return 16
+	@staticmethod
+	def AFTER_KILL():
+		return 17
 	def __init__(self):
 		self.coolDown=0#技能冷却时间
 		self.cdLeft=0#当前技能的剩余冷却时间

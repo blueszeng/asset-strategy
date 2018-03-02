@@ -32,7 +32,7 @@ class bombCounter(Buff):
 		for pair in self.unit.LastSortList:
 			if pair.value <= self.range +pair.key.radiu:
 				traget= self.unit.manager.getUnit(pair.key.id)
-				if not traget.ownerid== self.creater.ownerid:
+				if not traget == None and not traget.ownerid== self.creater.ownerid:
 					self.creater.causeDamage(traget.no,Damage.MAGIC_DAMAGE(),20)
 					distant=(traget.circle.center-self.unit.circle.center).normalized
 					traget.repel.begin(distant,0.2,None,None)
@@ -45,7 +45,7 @@ class bombCounter(Buff):
 		for pair in self.unit.LastSortList:
 			if pair.value <= self.range +pair.key.radiu:
 				traget= self.unit.manager.getUnit(pair.key.id)
-				if not traget.ownerid== self.creater.ownerid and not traget == self.unit:
+				if not traget == None and not traget.ownerid== self.creater.ownerid and not traget == self.unit:
 					self.creater.causeDamage(traget.no,Damage.MAGIC_DAMAGE(),20)
 					distant=(traget.circle.center-self.unit.circle.center).normalized
 					traget.repel.begin(distant,0.2,None,None)

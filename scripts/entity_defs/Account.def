@@ -68,6 +68,8 @@
 		<delBuff>
 			<Arg>		INT8		</Arg>
 		</delBuff>
+		<died>
+		</died>
 	</ClientMethods>
 
 	<BaseMethods>

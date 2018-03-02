@@ -88,18 +88,23 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.buffs={}#用buff的no作为索引值的字典,添加buff和消除buff都只传buff的no这样做的坏处是一个角色身上同一种的buff只会有一个
 		#註冊的觸發方法
 		self.disabledBuffNo=[]#用于清除buff,因为在回圈中del会报长度改变错误
-		self.f_beforeBeenSkill=[]
-		self.f_afterBeenSkill=[]
-		self.f_beforeTakeDamage=[]
-		self.f_afterTakeDamage=[]
-		self.f_beforeCauseDamage=[]
-		self.f_afterCauseDamage=[]
-		self.f_beforeSkill=[]
-		self.f_afterSkill=[]
-		self.f_beforeHealing=[]
-		self.f_afterHealing=[]
-		self.f_beforeBeenHealing=[]
-		self.f_afterBeenHealing=[]
+		self.f_beforeBeenSkill=None
+		self.f_afterBeenSkill=None
+		self.f_beforeTakeDamage=None
+		self.f_afterTakeDamage=None
+		self.f_beforeCauseDamage=None
+		self.f_afterCauseDamage=None
+		self.f_beforeSkill=None
+		self.f_afterSkill=None
+		self.f_beforeHealing=None
+		self.f_afterHealing=None
+		self.f_beforeBeenHealing=None
+		self.f_afterBeenHealing=None
+		self.f_beforeDied=None
+		self.f_afterDied=None
+		self.f_beforeKill=None
+		self.f_afterKill=None
+		
 		self.LastSortList=None
 		#属性变量
 		self._speed=self.STAND_SPEED
@@ -113,29 +118,69 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			#主動技能不註冊
 			#註冊觸發方法
 			if nowSkill.kind==Skill.BEFORE_BEEN_SKILL():
+				if self.f_beforeBeenSkill==None:
+					self.f_beforeBeenSkill=[]
 				self.f_beforeBeenSkill.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.AFTER_BEEN_SKILL():
+				if self.f_afterBeenSkill==None:
+					self.f_afterBeenSkill=[]
 				self.f_afterBeenSkill.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.BEFORE_TAKE_DAMAGE():
+				if self.f_beforeTakeDamage==None:
+					self.f_beforeTakeDamage=[]
 				self.f_beforeTakeDamage.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.AFTER_TAKE_DAMAGE():
+				if self.f_afterTakeDamage==None:
+					self.f_afterTakeDamage=[]
 				self.f_afterTakeDamage.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.BEFORE_CAUSE_DAMAGE():
+				if self.f_beforeCauseDamage==None:
+					self.f_beforeCauseDamage=[]
 				self.f_beforeCauseDamage.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.AFTER_CAUSE_DAMAGE():
+				if self.f_afterCauseDamage==None:
+					self.f_afterCauseDamage=[]
 				self.f_afterCauseDamage.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.BEFORE_SKILL():
+				if self.f_beforeSkill==None:
+					self.f_beforeSkill=[]
 				self.f_beforeSkill.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.AFTER_SKILL():
+				if self.f_afterSkill==None:
+					self.f_afterSkill=[]
 				self.f_afterSkill.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.BRFORE_HEAL():
+				if self.f_beforeHealing==None:
+					self.f_beforeHealing=[]
 				self.f_beforeHealing.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.AFTER_HEAL():
-				self.f_beforeHealing.append(nowSkill.trigger)
+				if self.f_afterHealing==None:
+					self.f_afterHealing=[]
+				self.f_afterHealing.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.BRFORE_BEEN_HEAL():
+				if self.f_beforeBeenHealing==None:
+					self.f_beforeBeenHealing=[]
 				self.f_beforeBeenHealing.append(nowSkill.trigger)
 			elif nowSkill.kind==Skill.AFTER_BEEN_HEAL():
+				if self.f_afterBeenHealing==None:
+					self.f_afterBeenHealing=[]
 				self.f_afterBeenHealing.append(nowSkill.trigger)
+			elif nowSkill.kind==Skill.BEFORE_KILL():
+				if self.f_beforeKill==None:
+					self.f_beforeKill=[]
+				self.f_beforeKill.append(nowSkill.trigger)
+			elif nowSkill.kind==Skill.AFTER_KILL():
+				if self.f_afterKill==None:
+					self.f_afterKill=[]
+				self.f_afterKill.append(nowSkill.trigger)
+			elif nowSkill.kind==Skill.BEORE_DIED():
+				if self.f_beforeDied==None:
+					self.f_beforeDied=[]
+				self.f_beforeDied.append(nowSkill.trigger)
+			elif nowSkill.kind==Skill.AFTER_DIED():
+				if self.f_afterDied==None:
+					self.f_afterDied=[]
+				self.f_afterDied.append(nowSkill.trigger)
 			self.skills.append(nowSkill)
 	def initProperty(self,power,armor,armor_kind,physique,range=AI.NEAR_RANGE(unit_radiu)):
 		self.power=power
@@ -172,14 +217,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 	def moving(self,mov):
 		if not mov==self._moving:
 			self._moving=mov
-			self.manager.setMoving(mov)
-	@property
-	def speed(self):
-		return self._speed
-	@speed.setter 
-	def speed(self,sp):
-		self._speed=sp
-		self.manager.setSpeed(self.no,sp)
+			self.events.append(Event(self.manager.setMoving,mov))
 	@property
 	def speed(self):
 		return self._speed
@@ -190,61 +228,96 @@ class unit:#单位物件包扩圆+转向+属性+事件
 	@property
 	def hp(self):
 		return self._hp
-	@speed.setter 
+	@hp.setter 
 	def hp(self,sp):
+		print("no{0} hp {1}->{2}".format(self.no,self._hp,sp))
 		self._hp=sp
 	def SkillTo(self,skill,tragetNo):
 		traget=self.manager.getUnit(tragetNo)
 		arg=[skill,traget]
-		for skill in self.f_beforeSkill:
-				skill(arg)
-		for skill in traget.f_beforeBeenSkill:
-				skill(arg)
+		if self.f_beforeSkill:
+			for s in self.f_beforeSkill:
+					s(arg)
+		if self.f_beforeBeenSkill:
+			for s in traget.f_beforeBeenSkill:
+					s(arg)
 		self.events.append(Event(self.manager.useSkill,[skill.index,tragetNo]))
 	def AfterSkillTo(self,skill,tragetNo):
 		traget=self.manager.getUnit(tragetNo)
 		arg=[skill,traget]
-		for skill in self.f_beforeSkill:
-			skill.trigger(arg)
-		for skill in traget.f_beforeBeenSkill:
-			skill.trigger(arg)
+		if not self.f_afterSkill==None:
+			for s in self.f_afterSkill:
+				s(arg)
+		if not self.f_afterBeenSkill==None:
+			for s in traget.f_afterBeenSkill:
+				s(arg)
 	def takeDamage(self,damage):
-		for function in self.f_beforeTakeDamage:
-			function(damage)
+		if not self.f_beforeTakeDamage == None:
+			for function in self.f_beforeTakeDamage:
+				function(damage)
 		if damage.exist:
+			DEBUG_MSG("in bef takeDamage hp is{0}".format(self.hp))
 			self.hp-=damage.num
-			self.events.append(Event(self.manager.takeDamage,damage.num))
-		for function in self.f_afterTakeDamage:
-			function(damage)
+			DEBUG_MSG("in aft takeDamage hp is{0}".format(self.hp))
+		arg=[damage,self]
+		if self.hp<0:
+			if not self.f_beforeDied==None:
+				for funcion in self.f_beforeDied:
+					funcion(arg)
+		if self.hp<0:
+			if not damage.damager.f_beforeKill==None:
+				for funcion in damage.damager.f_beforeKill:
+					funcion(arg)
+		self.events.append(Event(self.manager.takeDamage,damage.num))
+		if self.hp<0:
+			self.manager.KillUnit(self)
+			DEBUG_MSG("KKKKKKKKKKKKKKKKKKKK no{0} died".format(self.no))
+			self.events.append(Event(self.manager.died,damage.damager.no))
+			if not self.f_afterDied==None:
+				for funcion in self.f_afterDied:
+					funcion(arg)
+			if not damage.damager.f_afterKill==None:
+				for funcion in damage.damager.f_afterKill:
+					funcion(arg)
+		if not self.f_afterTakeDamage == None:
+			for function in self.f_afterTakeDamage:
+				function(damage)
 	def beHealing(self,healpoint):
-		for function in self.f_beforeBeenHealing:
-			function(healpoint)
+		if not self.f_beforeBeenHealing == None:
+			for function in self.f_beforeBeenHealing:
+				function(healpoint)
 		if healpoint.exist:
 			self.hp-=healpoint.num
 			self.events.append(Event(self.manager.beTreat,healpoint.num))
-		for function in self.f_afterBeenHealing:
-			function(healpoint)
+		if not self.f_afterBeenHealing == None:
+			for function in self.f_afterBeenHealing:
+				function(healpoint)
 		
 	def healingTo(self,tragetNo,num):
 		print("heal tragetNo is {0}".format(tragetNo))
 		traget=self.manager.getUnit(tragetNo)
 		healpoint=Damage(2,num,self)
-		for function in self.f_beforeHealing:
-			function([traget,healpoint])
+		if not self.f_beforeHealing == None:
+			for function in self.f_beforeHealing:
+				function([traget,healpoint])
 		traget.beHealing(healpoint)
-		for function in self.f_afterHealing:
-			function([traget,healpoint])
+		if not self.f_afterHealing == None:
+			for function in self.f_afterHealing:
+				function([traget,healpoint])
 	def causeDamage(self,tragetNo,kind,num):
 		print("cause tragetNo is {0}".format(tragetNo))
 		traget=self.manager.getUnit(tragetNo)
-		newd=Damage(kind,int(num),self)
-		Damage.calAdditon(newd,self.power)
-		Damage.calVulnerable(newd,traget.armor_kind)
-		for function in self.f_beforeCauseDamage:
-			function([traget,newd])
-		traget.takeDamage(newd)
-		for function in self.f_afterCauseDamage:
-			function([traget,newd])
+		if not traget == None:
+			newd=Damage(kind,int(num),self)
+			Damage.calAdditon(newd,self.power)
+			Damage.calVulnerable(newd,traget.armor_kind)
+			if not self.f_beforeCauseDamage == None:
+				for function in self.f_beforeCauseDamage:
+					function([traget,newd])
+			traget.takeDamage(newd)
+			if not self.f_afterCauseDamage == None:
+				for function in self.f_afterCauseDamage:
+					function([traget,newd])
 	def addBuff(self,buffClass,time,creater):
 		#other.buffs[buffList.burn.no()]=buffList.burn(5,other,self.unit)#添加一个新的燃烧buff
 		buff=buffClass(time,self,creater)
@@ -261,6 +334,7 @@ class WarField(KBEngine.Entity):
 		DEBUG_MSG("WarField Cell done")
 		self.space=XYCollied(2,4,-4*unit_radiu,-8*unit_radiu,4*unit_radiu,4*unit_radiu,self.shiftCallBack)#圆半径是10,格子宽度是两个圆也就是10*2 *2
 		self.units=[]
+		self.cemetery=[]#存放死去的单位
 		self.resigns=[]
 		self.playerIds=[]
 		self.cycle=0.1#更新周期
@@ -282,10 +356,12 @@ class WarField(KBEngine.Entity):
 		if self.run:
 			#先做物理判定
 			self.space.Collied()
+			print("collied end")
 			#處理之前註冊的record
 			for record in self.resigns:
 				if record.update(self.cycle):
 					self.resigns.remove(record)
+			print("record end")
 			#主動技能觸發
 			for unit in self.units:
 				for s in unit.skills:
@@ -337,6 +413,15 @@ class WarField(KBEngine.Entity):
 			DEBUG_MSG("pid is {0}".format(pid))
 			KBEngine.entities[pid].p_addnewUnit(unitNo,rolekind,skillNumberList.list[rolekind],posx,posy,ownerid)
 			#KBEngine.entities[pid].client.int64({"list":[90,99]})
+	def KillUnit(self,unit):
+		self.units.remove(unit)
+		self.space.delCircle(unit.circle)
+		for u in self.units:
+			u.AI.traget=None
+			for index in range(0,len(u.LastSortList)):
+				if u.LastSortList[index].key.id == unit.no:
+					del u.LastSortList[index]
+					break
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
 		rolekind=1
@@ -389,6 +474,9 @@ class WarField(KBEngine.Entity):
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_updateEnd(self.frame_num)
 		self.frame_num+=1
+	def died(self):
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_died()
 	def signUpTime(self,time,function,arg):
 		self.resigns.append(time_resign(time,function,arg))
 	def signUpArrow(self,speed,traget,oriPos,function,arg):
