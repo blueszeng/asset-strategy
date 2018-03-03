@@ -10,6 +10,8 @@
 		node0 <-left- node1 <-left- node3 <-left- node4
 		node0 -right-> node1 -right-> node3 -right-> node4
 """
+import math
+
 class XYTreeNode:
 	def __init__(self):
 		self.subNode=[]
@@ -28,6 +30,10 @@ class XTreeNode(YTreeNode):
 		if not up == None:
 			up.down=self
 		self.No=No
+	def getIndexX(self,tree):
+		return self.No%tree.xnum
+	def getIndexY(self,tree):
+		return int(self.No/tree.xnum)
 class XYTree:
 	def __init__(self,x,y,leftBoundary,upBoundary,cellWidth,cellHeight):
 		self.ynum=y
@@ -62,8 +68,8 @@ class XYTree:
 	def rightBoundary(self):
 		return self.leftBoundary+self.xnum*self.cellWidth
 	def getNode(self,posx,posy):
-		indexX=int((posx-self.leftBoundary)/self.cellWidth)
-		indexY=int((posy-self.upBoundary)/self.cellHeight)
+		indexX=math.floor((posx-self.leftBoundary)/self.cellWidth)
+		indexY=math.floor((posy-self.upBoundary)/self.cellHeight)
 		#如果超过边界则放在那个边界,但如果大量的物件都放在边界的话,会变为线性搜寻,效率低下
 		if indexY<0:#超过y上边边界
 			indexY=0
@@ -97,8 +103,8 @@ class XYTree:
 					string+=("\n ->->"+str(node))
 		return string
 	def inSameArea(self,firstx,firsty,secondx,secondy):
-		boolx=(int(firstx/self.cellWidth)==int(secondx/self.cellWidth))
-		booly=(int(firsty/self.cellHeight)==int(secondy/self.cellHeight))
+		boolx=(math.floor(firstx/self.cellWidth)==math.floor(secondx/self.cellWidth))
+		booly=(math.floor(firsty/self.cellHeight)==math.floor(secondy/self.cellHeight))
 		return boolx and booly
 #----------------------------------------------测试代码---------------------------------------------
 '''tree=XYTree(6,6,-15.5,-100,30,30)

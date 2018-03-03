@@ -110,6 +110,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self._speed=self.STAND_SPEED
 		self._hp=100
 		self.repel=Repel(self)#被强迫的位移
+		self.diedAlready=False
 		#self.repel=None
 	def initSkill(self,list):
 		for i in range(0,len(list)):
@@ -260,25 +261,26 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			self.hp-=damage.num
 			DEBUG_MSG("in aft takeDamage hp is{0}".format(self.hp))
 		arg=[damage,self]
-		if self.hp<0:
-			if not self.f_beforeDied==None:
-				for funcion in self.f_beforeDied:
-					funcion(arg)
-		if self.hp<0:
-			if not damage.damager.f_beforeKill==None:
-				for funcion in damage.damager.f_beforeKill:
-					funcion(arg)
-		self.events.append(Event(self.manager.takeDamage,damage.num))
-		if self.hp<0:
-			self.manager.KillUnit(self)
-			DEBUG_MSG("KKKKKKKKKKKKKKKKKKKK no{0} died".format(self.no))
-			self.events.append(Event(self.manager.died,damage.damager.no))
-			if not self.f_afterDied==None:
-				for funcion in self.f_afterDied:
-					funcion(arg)
-			if not damage.damager.f_afterKill==None:
-				for funcion in damage.damager.f_afterKill:
-					funcion(arg)
+		if not self.diedAlready:#如果角色还没死亡
+			if self.hp<0:#这个判断是因为某些技能能让角色脱离死亡,通过改hp的方式
+				if not self.f_beforeDied==None:
+					for funcion in self.f_beforeDied:
+						funcion(arg)
+			if self.hp<0:
+				if not damage.damager.f_beforeKill==None:
+					for funcion in damage.damager.f_beforeKill:
+						funcion(arg)
+			self.events.append(Event(self.manager.takeDamage,damage.num))
+			if self.hp<0:
+				self.diedAlready=True
+				self.events.append(Event(self.manager.KillUnit,self))
+				self.events.append(Event(self.manager.died,damage.damager.no))
+				if not self.f_afterDied==None:
+					for funcion in self.f_afterDied:
+						funcion(arg)
+				if not damage.damager.f_afterKill==None:
+					for funcion in damage.damager.f_afterKill:
+						funcion(arg)
 		if not self.f_afterTakeDamage == None:
 			for function in self.f_afterTakeDamage:
 				function(damage)
@@ -345,8 +347,10 @@ class WarField(KBEngine.Entity):
 		#除错代码
 		i=0
 		for pos in default_debug:
-			self.newUnit(1,pos.x,pos.y,47+i)
+			self.newUnit(0,pos.x,pos.y,47+i)
 			i+=1
+		for unit in self.units:
+			print("no{0} circle in space? ans:{1}".format(unit.no,unit.circle in self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y).subNode))
 	def getUnit(self,no):
 		for unit in self.units:
 			if unit.no==no:
@@ -474,7 +478,8 @@ class WarField(KBEngine.Entity):
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_updateEnd(self.frame_num)
 		self.frame_num+=1
-	def died(self):
+	def died(self,useless):
+		DEBUG_MSG("KKKKKKKKKKKKKKKKKKKK manager:died be call")
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_died()
 	def signUpTime(self,time,function,arg):

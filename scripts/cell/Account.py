@@ -46,6 +46,8 @@ class Account(KBEngine.Entity):
 		self.client.turnNo(no)
 	def p_updateEnd(self,count):
 		self.client.updateEnd(count)
+		node=self.Slave.manager.space.circles.getNode(self.Slave.circle.center.x,self.Slave.circle.center.y)
+		print("slave in node ({0},{1}) in?{2}".format(node.getIndexX(self.Slave.manager.space.circles),node.getIndexY(self.Slave.manager.space.circles),self.Slave.circle in node.subNode))
 	def p_takeDamage(self,num):
 		self.client.takeDamage(num)
 	def p_useSkill(self,skillindex,tragetNo):

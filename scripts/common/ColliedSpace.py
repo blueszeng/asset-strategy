@@ -115,12 +115,15 @@ class XYCollied:
 		self.shiftCallBack=shiftCallBack
 	def onCircleChange(self,circle):
 		print("::: onCircleChange be call :::")
+		print("lastX{0} lastY{1} x{2} y{3} the same{4}".format(circle.lastX,circle.lastY,circle.center.x,circle.center.y,self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y)))
 		if not self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y):#如果移动之后会进入一个新的区域
 			node=self.circles.getNode(circle.lastX,circle.lastY)
+			print("before node is ({0},{1})".format(node.getIndexX(),node.getIndexY))
 			node.subNode.remove(circle)
 			if len(node.subNode)==0:
 				self.record.remove(node)
 			newnode=self.circles.getNode(circle.center.x,circle.center.y)
+			print("after node is ({0},{1})".format(newnode.getIndexX(),newnode.getIndexY))
 			newnode.subNode.append(circle)
 			if not newnode in self.record:
 				self.record.append(newnode)
@@ -132,10 +135,10 @@ class XYCollied:
 		self.totalNum+=1
 		return circle
 	def delCircle(self,circle):
-		node=self.circles.getNode(circle.center.x,circle.center.y).subNode
-		node.remove(circle)
-		if len(node)==0:
-			record.remove(node)
+		node=self.circles.getNode(circle.center.x,circle.center.y)
+		node.subNode.remove(circle)
+		if len(node.subNode)==0:
+			self.record.remove(node)
 	def ColliedWith(self,shift,circle,overSet):#用於遞迴分散位移
 #建立CloseSet----------------------------------------------------------------------
 		if(not circle.id in self.closeSet):#還未記錄自己的與相鄰列表
