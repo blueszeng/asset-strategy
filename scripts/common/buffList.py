@@ -5,6 +5,8 @@ class Buff:
 		self.timeLeft=time
 		self.unit=unit#状态依附者
 		self.creater=creater#状态制造者
+	def start(self):
+		pass
 class burn(Buff):
 	actionTime=1;
 	@staticmethod
@@ -53,3 +55,18 @@ class bombCounter(Buff):
 				break
 		print("_______redetonate")
 		self.timeLeft=time
+class coma(Buff):
+	@staticmethod
+	def no():
+		return 2
+	def start(self):
+		self.unit.canAttack=False
+		self.unit.canSkill=False
+		self.unit.canMove=False
+	def update(self,time):
+		self.timeLeft-=time
+		if self.timeLeft <= 0:
+			self.unit.canAttack=True
+			self.unit.canSkill=True
+			self.unit.canMove=True
+			self.unit.deleteBuff(self)

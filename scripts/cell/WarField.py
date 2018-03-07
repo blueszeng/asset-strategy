@@ -24,13 +24,23 @@ class Repel:
 		self.speed=[arraw.x/time,arraw.y/time]
 		self.timeLeft=time
 		if not self.LastCallBack == None:
-			unit.circle.f_onColliedIn.remove(self.LastCallBack)
+			self.unit.circle.f_onColliedIn.remove(self.LastCallBack)
+			self.LastCallBack=None
 		if not onHit == None:
-			unit.circle.f_onColliedIn.append(onHit)
+			self.unit.circle.f_onColliedIn.append(onHit)
+			self.LastCallBack=onHit
 		if not self.onTheEnd == None:
 			self.onTheEnd()
 		self.onTheEnd=onTheEnd
 		self.unit.events.append(Event(self.unit.manager.beRepel,[arraw,time]))#arraw是Vector2
+	def stop(self,doEnd=False):
+		self.self.timeLeft=-1
+		if not self.LastCallBack == None:
+			unit.circle.f_onColliedIn.remove(self.LastCallBack)
+			self.LastCallBack=None
+		if doEnd and not onTheEnd==None:
+			self.onTheEnd()
+		self.onTheEnd=None
 	def update(self,time):
 		self.timeLeft-=time
 		DEBUG_MSG("in repel timeLeft:{0}".format(self.timeLeft))
@@ -42,7 +52,8 @@ class Repel:
 				self.onTheEnd()
 				self.onTheEnd=None
 			if not self.LastCallBack == None:
-				unit.circle.f_onColliedIn.remove(self.LastCallBack)
+				self.unit.circle.f_onColliedIn.remove(self.LastCallBack)
+				self.LastCallBack=None
 class time_resign:
 	def __init__(self,time,function,arg):
 		self.timeLeft=time
@@ -109,6 +120,10 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		#属性变量
 		self._speed=self.STAND_SPEED
 		self._hp=100
+		self._power=0
+		self._canAttack=1#可否攻击
+		self._canSkill=1#可否使用主动技能
+		self._canMove=1
 		self.repel=Repel(self)#被强迫的位移
 		self.diedAlready=False
 		#self.repel=None
@@ -183,11 +198,10 @@ class unit:#单位物件包扩圆+转向+属性+事件
 					self.f_afterDied=[]
 				self.f_afterDied.append(nowSkill.trigger)
 			self.skills.append(nowSkill)
-	def initProperty(self,power,armor,armor_kind,physique,range=AI.NEAR_RANGE(unit_radiu)):
-		self.power=power
+	def initProperty(self,armor,armor_kind,hp,range=AI.NEAR_RANGE(unit_radiu)):
 		self.armor=armor
+		self._hp=hp
 		self.armor_kind=armor_kind
-		self.physique=physique
 		self.AI=AI(self,range)
 	def update(self,manager):
 		self.LastSortList=manager.space.getSortedCircleList(self.circle.center)
@@ -209,7 +223,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 	def direct(self,speed):
 		if not speed[0]==self._direct.x or not speed[1]==self._direct.y:
 			self._direct=Vector2(speed[0],speed[1])
-			self.manager.setDirect(speed)
+			self.events.append(Event(self.manager.setDirect,speed))
 	
 	@property
 	def moving(self):
@@ -233,6 +247,41 @@ class unit:#单位物件包扩圆+转向+属性+事件
 	def hp(self,sp):
 		print("no{0} hp {1}->{2}".format(self.no,self._hp,sp))
 		self._hp=sp
+	@property
+	def canAttack(self):
+		return self._canAttack>0
+	@canAttack.setter
+	def canAttack(self,TF):
+		if TF:
+			self._canAttack+=1
+		else:
+			self._canAttack-=1
+	@property
+	def canSkill(self):
+		return self._canSkill>0
+	@canSkill.setter
+	def canSkill(self,TF):
+		if TF:
+			self._canSkill+=1
+		else:
+			self._canSkill-=1
+	@property
+	def canMove(self):
+		return self._canMove>0
+	@canMove.setter
+	def canMove(self,TF):
+		if TF:
+			self._canMove+=1
+		else:
+			self._canMove-=1
+		self.events.append(Event(self.manager.setcanMove,self.canMove))
+	@property
+	def power(self):
+		return self._power
+	@power.setter
+	def power(self,p):
+		self._power=p
+	
 	def SkillTo(self,skill,tragetNo):
 		traget=self.manager.getUnit(tragetNo)
 		arg=[skill,traget]
@@ -323,6 +372,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 	def addBuff(self,buffClass,time,creater):
 		#other.buffs[buffList.burn.no()]=buffList.burn(5,other,self.unit)#添加一个新的燃烧buff
 		buff=buffClass(time,self,creater)
+		buff.start()
 		self.buffs[buff.no()]=buff
 		self.events.append(Event(self.manager.addBuff,buff.no()))
 	def deleteBuff(self,buff):
@@ -330,7 +380,9 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.events.append(Event(self.manager.deleteBuff,buff.no()))
 class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
-		self.shiftRecord[no]=[x,y]
+		if not no in self.shiftRecord.keys():#這個防呆是因為出現過,因為center改變的反射導致space 的record改變,同一個circle被計算shift兩次
+			self.shiftRecord[no]=[x,y]
+		DEBUG_MSG("in shift record no{1} shift is {0}".format(self.shiftRecord[no],no))
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		DEBUG_MSG("WarField Cell done")
@@ -347,7 +399,7 @@ class WarField(KBEngine.Entity):
 		#除错代码
 		i=0
 		for pos in default_debug:
-			self.newUnit(0,pos.x,pos.y,47+i)
+			self.newUnit(2,pos.x,pos.y,47+i)
 			i+=1
 		for unit in self.units:
 			print("no{0} circle in space? ans:{1}".format(unit.no,unit.circle in self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y).subNode))
@@ -376,6 +428,7 @@ class WarField(KBEngine.Entity):
 			for unit in self.units:#主逻辑回圈,更新单位的AI,将单位速度和位移传给客户端
 				#DEBUG_MSG("unit{0} center is {1}".format(unit.no,unit.circle.center))
 				self.turnNo(unit.no)#该单位的更新周期开始
+				unit.update(self)
 				#更新技能
 				print("no{0} events has {1} event".format(unit.no,len(unit.events)))
 				for event in unit.events:
@@ -385,24 +438,26 @@ class WarField(KBEngine.Entity):
 				#发送挤压的击退值
 				#DEBUG_MSG("circle id{0} lastShiftx:{1} lastShifty:{2} center{3}".format(unit.circle.id,unit.circle.lastShiftx,unit.circle.lastShifty,str(unit.circle.center)))
 				shift=self.shiftRecord[unit.circle.id]
+				print("in shift {0}".format(shift))
 				if not shift[0]==0 or not shift[1]==0:
 					self.setShift(shift)
-					self.shiftRecord[unit.circle.id]=[0,0]
+					print("its no is{0}".format(unit.circle.id))
+				del self.shiftRecord[unit.circle.id]
 				#再做速度移动
-				if unit.moving:
+					#DEBUG_MSG("norm:({2},{3}) speed:({0},{1})".format(norm.x*unit.speed*self.cycle,norm.y*unit.speed*self.cycle,norm.x,norm.y))
+				#debug代码
+				#DEBUG_MSG("position after is {0}".format(unit.circle.center))
+				#再做AI
+			for unit in self.units:
+				if unit.moving and unit.canMove:
 					norm=unit.direct.normalized
 					#debug代码
+					DEBUG_MSG(">>in final moving:{0} canMove{1}".format(unit.moving,unit.canMove))
 					#DEBUG_MSG("no{0}".format(unit.no))
 					#DEBUG_MSG("norm is "+str(unit.direct.normalized))
 					#------------------------
 					unit.circle.center.x+=norm.x*unit.speed*self.cycle
 					unit.circle.center.y+=norm.y*unit.speed*self.cycle
-					#DEBUG_MSG("norm:({2},{3}) speed:({0},{1})".format(norm.x*unit.speed*self.cycle,norm.y*unit.speed*self.cycle,norm.x,norm.y))
-				#debug代码
-				#DEBUG_MSG("position after is {0}".format(unit.circle.center))
-				#再做AI
-				unit.update(self)
-			for unit in self.units:
 				DEBUG_MSG("no{0} final position:{1}".format(unit.no,unit.circle.center))
 			self.updateEnd()
 	def newUnit(self,rolekind,posx,posy,ownerid):
@@ -410,7 +465,8 @@ class WarField(KBEngine.Entity):
 		unitNo=circle.id
 		newone=unit(circle,unitNo,self,ownerid)
 		DEBUG_MSG("**new unit rolekind{0} list{1}".format(rolekind,skillNumberList.list[rolekind]))
-		newone.initProperty(0,0,Damage.LIGHT_ARMOR(),0,skillNumberList.ranges[rolekind])
+		p=skillNumberList.propertys[rolekind]
+		newone.initProperty(p[0],p[1],p[2],skillNumberList.ranges[rolekind])
 		newone.initSkill(skillNumberList.list[rolekind])
 		self.units.append(newone)
 		for pid in self.playerIds:
@@ -421,14 +477,15 @@ class WarField(KBEngine.Entity):
 		self.units.remove(unit)
 		self.space.delCircle(unit.circle)
 		for u in self.units:
-			u.AI.traget=None
+			if not u.AI == None:
+				u.AI.traget=None
 			for index in range(0,len(u.LastSortList)):
 				if u.LastSortList[index].key.id == unit.no:
 					del u.LastSortList[index]
 					break
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
-		rolekind=1
+		rolekind=2
 		self.run=True
 		#除错代码
 		for unit in self.units:
@@ -482,6 +539,9 @@ class WarField(KBEngine.Entity):
 		DEBUG_MSG("KKKKKKKKKKKKKKKKKKKK manager:died be call")
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_died()
+	def setcanMove(self,TF):
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_setcanMove(TF)
 	def signUpTime(self,time,function,arg):
 		self.resigns.append(time_resign(time,function,arg))
 	def signUpArrow(self,speed,traget,oriPos,function,arg):

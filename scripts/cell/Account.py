@@ -62,3 +62,5 @@ class Account(KBEngine.Entity):
 		self.client.delBuff(buffno)
 	def p_died(self):
 		self.client.died()
+	def p_setcanMove(self,m):
+		self.client.setcanMove(m)

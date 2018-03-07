@@ -6,13 +6,15 @@ import WarField
 import math
 import random
 import buffList
-class no1_ATK(Skill):
-	@property
-	def No(self):
-		return 0#技能编号
+class General_combat_atk(Skill):
 	def __init__(self,radiu,unit,index):
+		#子类别客制化属性
 		self.coolDown=1.0#技能冷却时间
 		self.cdLeft=1.0#当前技能的剩余冷却时间
+		self.damageKind=Damage.NORMAL_DAMAGE()
+		self.damageNum=10
+		self.timeBefore=0.2
+		#固有代码
 		self.kind=Skill.ACTIVE()
 		self.attack=True#是否是角色的基本攻击
 		self.range=unit.AI.NEAR_RANGE(radiu)#攻击范围
@@ -20,7 +22,7 @@ class no1_ATK(Skill):
 		self.index=index#技能在角色身上的欄位索引
 	def canUse(self,arg):
 		print("in no0 skill canUse roleid{0}".format(self.unit.no))
-		if self.unit.AI==None or self.unit.AI.traget==None or self.unit.LastSortList==None:
+		if self.unit.AI==None or self.unit.AI.traget==None or not self.unit.canAttack or self.unit.LastSortList==None:
 			print("AI 或 list为空")
 			return False
 		for pair in self.unit.LastSortList:
@@ -35,16 +37,70 @@ class no1_ATK(Skill):
 		return False
 	def respons(self,tragetId):
 		print("in skill no0 reapons roleid{0}".format(self.unit.no))
-		self.unit.causeDamage(tragetId,Damage.NORMAL_DAMAGE(),10)
+		self.unit.causeDamage(tragetId,self.damageKind,self.damageNum)
 		self.unit.AfterSkillTo(self,tragetId)
 	def trigger(self,arg):
 		if self.canUse(arg):
 			print("in no0 skill trigger roleid{0}".format(self.unit.no))
-			self.unit.manager.signUpTime(0.2,self.respons,self.unit.AI.traget.id)#AI.traget的形态是圆但是id和它的unit相同
+			self.unit.manager.signUpTime(self.timeBefore,self.respons,self.unit.AI.traget.id)#AI.traget的形态是圆但是id和它的unit相同
 			self.unit.SkillTo(self,self.unit.AI.traget.id)
 			self.cdLeft=self.coolDown
 	def onTime(self,time):
 		self.cdLeft-=time
+class General_remote_atk(Skill):
+	def __init__(self,radiu,unit,index):
+		#客制化属性
+		self.coolDown=1.5#技能冷却时间
+		self.cdLeft=1.5#当前技能的剩余冷却时间
+		self.damageKind=Damage.MAGIC_DAMAGE()
+		self.damageNum=10
+		self.missileSpeed=5
+		#固有代码
+		self.kind=Skill.ACTIVE()
+		self.attack=True#是否是角色的基本攻击
+		self.range=unit.AI.FAR_RANGE(radiu)#攻击范围
+		self.unit=unit
+		self.index=index#技能在角色身上的欄位索引
+	def canUse(self,arg):
+		print("in no5 skill canUse roleid{0}".format(self.unit.no))
+		if self.unit.AI==None or self.unit.AI.traget==None or self.unit.LastSortList==None:
+			print("AI 或 list为空")
+			return False
+		for pair in self.unit.LastSortList:
+			if pair.key.id == self.unit.AI.traget.id:
+				if self.unit.manager.getUnit(pair.key.id)==None:
+					return False
+				print("value{0} radiu{1} range>{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
+				if pair.value <= self.range +pair.key.radiu and self.cdLeft<=0:
+					#print("canUse return true!!!!!")
+					return True
+		print("in no5 canUse return false!!!!!")
+		return False
+	def respons(self,tragetId):
+		print("self is {0}".format(self))
+		#print("in skill no0 reapons roleid{0}".format(self.unit.no))
+		self.unit.causeDamage(tragetId,self.damageKind,self.damageNum)
+		self.unit.AfterSkillTo(self,tragetId)
+	def trigger(self,arg):
+		if self.canUse(arg):
+			#print("in no0 skill trigger roleid{0}".format(self.unit.no))
+			self.unit.manager.signUpArrow(self.missileSpeed,self.unit.AI.traget,self.unit.circle.center,self.respons,self.unit.AI.traget.id)#AI.traget的形态是圆但是id和它的unit相同
+			self.unit.SkillTo(self,self.unit.AI.traget.id)
+			self.cdLeft=self.coolDown
+	def onTime(self,time):
+		self.cdLeft-=time
+class no1_ATK(General_combat_atk):
+	@property
+	def No(self):
+		return 0#技能编号
+	def __init__(self,radiu,unit,index):
+		super().__init__(radiu,unit,index)
+		self.coolDown=1.0#技能冷却时间
+		self.cdLeft=1.0#当前技能的剩余冷却时间
+		self.damageKind=Damage.NORMAL_DAMAGE()
+		self.damageNum=10
+		self.timeBefore=0.2
+
 class no2_flamechop(Skill):
 	def No(self):
 		return 1#技能编号
@@ -274,7 +330,7 @@ class no7_livingBomb(Skill):
 		self.unit.AfterSkillTo(self,other.no)
 	def onTime(self,time):
 		self.cdLeft-=time
-class no8_MolotovCocktail:
+class no8_MolotovCocktail(Skill):
 	@property
 	def No(self):
 		return 7#技能编号
@@ -315,5 +371,50 @@ class no8_MolotovCocktail:
 				break
 	def onTime(self,time):
 		pass
+class no9_dash(Skill):
+	def __init__(self,radiu,unit,index):
+		self.coolDown=5.0#技能冷却时间
+		self.cdLeft=0#当前技能的剩余冷却时间
+		self.kind=Skill.ACTIVE()
+		self.attack=True#是否是角色的基本攻击
+		self.range=unit.AI.NEAR_RANGE(radiu)#攻击范围
+		self.unit=unit
+		self.index=index#技能在角色身上的欄位索引
+	@property
+	def No(self):
+		return 8#技能编号
+	def canUse(self,arg):
+		print("in no0 skill canUse roleid{0}".format(self.unit.no))
+		if self.unit.AI==None or self.unit.AI.traget==None or not self.unit.canAttack or self.unit.LastSortList==None:
+			print("AI 或 list为空")
+			return False
+		for pair in self.unit.LastSortList:
+			if pair.key.id == self.unit.AI.traget.id:
+				if self.unit.manager.getUnit(pair.key.id)==None:
+					return False
+				print("value{0} radiu{1} range{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
+				if pair.value > self.range +pair.key.radiu and self.cdLeft<=0:
+					print("canUse return true!!!!!")
+					return True
+		print("canUse return false!!!!!")
+		return False
+	def onhit(self,selfcircle,other):
+		print("hhhhhhh onhit is really been call.. hhhhhhh")
+		traget=self.unit.manager.getUnit(other.id)
+		if not buffList.coma.no() in traget.buffs.keys():
+			traget.addBuff(buffList.coma,1,self.unit)
+		else:
+			traget.buffs[buffList.coma.no()].timeLeft=1
+		arraw=(other.center-selfcircle.center).normalized
+		traget.repel.begin(arraw.scaleWith(0.8),0.2,None,None)
+	def trigger(self,arg):
+		if self.canUse(arg):
+			print("in no0 skill trigger roleid{0}".format(self.unit.no))
+			self.unit.SkillTo(self,self.unit.AI.traget.id)
+			arraw=self.unit.AI.traget.center- self.unit.circle.center
+			self.unit.repel.begin(Vector2(arraw.normalized.x*5,arraw.normalized.y*5),0.5,self.onhit,None)
+			self.cdLeft=self.coolDown
+	def onTime(self,time):
+		self.cdLeft-=time
 #正文--------------------------------------------------------------------------------------------
-skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail]
+skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail,no9_dash]

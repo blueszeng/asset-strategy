@@ -114,16 +114,14 @@ class XYCollied:
 		self.halfdiagonal=math.sqrt((width/2)*(width/2)+(height/2)*(height/2))#半斜角距离
 		self.shiftCallBack=shiftCallBack
 	def onCircleChange(self,circle):
-		print("::: onCircleChange be call :::")
-		print("lastX{0} lastY{1} x{2} y{3} the same{4}".format(circle.lastX,circle.lastY,circle.center.x,circle.center.y,self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y)))
+		print("::: onCircleChange be call :::new x:{0} y:{1}".format(circle.center.x,circle.center.y))
+		#print("lastX{0} lastY{1} x{2} y{3} the same{4}".format(circle.lastX,circle.lastY,circle.center.x,circle.center.y,self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y)))
 		if not self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y):#如果移动之后会进入一个新的区域
 			node=self.circles.getNode(circle.lastX,circle.lastY)
-			print("before node is ({0},{1})".format(node.getIndexX(),node.getIndexY))
 			node.subNode.remove(circle)
 			if len(node.subNode)==0:
 				self.record.remove(node)
 			newnode=self.circles.getNode(circle.center.x,circle.center.y)
-			print("after node is ({0},{1})".format(newnode.getIndexX(),newnode.getIndexY))
 			newnode.subNode.append(circle)
 			if not newnode in self.record:
 				self.record.append(newnode)
@@ -184,7 +182,7 @@ class XYCollied:
 						#如果上一帧记录中没有此圆
 						if other not in circle.lastFrameClosers:
 							for function in  circle.f_onColliedIn:
-								function(other)#逐个呼叫onColliedIn中的callback
+								function(circle,other)#逐个呼叫onColliedIn中的callback
 		#记录closer到lastFrameClosers
 		circle.lastFrameClosers=self.closeSet[circle.id].closer
 		#給自己一個位移
@@ -247,7 +245,7 @@ class XYCollied:
 								#如果上一帧记录中没有此圆
 								if other not in circle.lastFrameClosers:
 									for function in  circle.f_onColliedIn:
-										function(other)#逐个呼叫onColliedIn中的callback
+										function(circle,other)#逐个呼叫onColliedIn中的callback
 				#记录closer到lastFrameClosers
 				circle.lastFrameClosers=self.closeSet[circle.id].closer
 				#print("bf cal circle{0} position is{1}".format(circle.id,circle.center))
