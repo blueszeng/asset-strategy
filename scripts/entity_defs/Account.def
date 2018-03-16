@@ -86,6 +86,14 @@
 			<Exposed/>
 			<Arg>		VECTOR2		</Arg>
 		</move>
+		<createRole>
+			<Exposed/>
+			<Arg>		INT8		</Arg>
+			<Arg>		VECTOR2		</Arg>
+		</createRole>
+		<debugGame>
+			<Exposed/>
+		</debugGame>
 	</CellMethods>
 
 </root>

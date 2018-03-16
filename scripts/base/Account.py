@@ -4,9 +4,12 @@ from KBEDebug import *
 
 
 class Account(KBEngine.Proxy):
+	def fieldOk(self,field):
+		field.addPlayer(self)
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
 		DEBUG_MSG("account createCellEntity")
+		KBEngine.createBaseAnywhere("WarField",{},self.fieldOk)
 		#if  KBEngine.globalData.has_key["space"]:
 		#	self.createCellEntity(KBEngine.globalData["space"].cell)
 		#else:
@@ -26,10 +29,10 @@ class Account(KBEngine.Proxy):
 		该entity被正式激活为可使用， 此时entity已经建立了client对应实体， 可以在此创建它的
 		cell部分。
 		"""
-		self.cellData["position"]=(0,0,0)
-		self.cellData["WarFieldId"]=KBEngine.globalData["one"].id#加入warField的id用于cell类别的呼叫方法
+		#self.cellData["position"]=(0,0,0)
+		#self.cellData["WarFieldId"]=KBEngine.globalData["one"].id#加入warField的id用于cell类别的呼叫方法
 		DEBUG_MSG("global one.cell is{0}".format(KBEngine.globalData["one"].cell))
-		self.createCellEntity(KBEngine.globalData["one"].cell)
+		#self.createCellEntity(KBEngine.globalData["one"].cell)
 		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
 			
 	def onLogOnAttempt(self, ip, port, password):
@@ -50,6 +53,6 @@ class Account(KBEngine.Proxy):
 	def onLoseCell(self):
 		self.destroy()
 	def onGetCell(self):
-		self.client.cellReady()
+		pass
 	def createSpace(self):
 		self.space = pymunk.Space()

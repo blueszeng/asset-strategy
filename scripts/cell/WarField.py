@@ -397,12 +397,12 @@ class WarField(KBEngine.Entity):
 		self.frame_num=1
 		self.run=False
 		#除错代码
-		i=0
+		'''i=0
 		for pos in default_debug:
-			self.newUnit(2,pos.x,pos.y,47+i)
+			self.newUnit(0,pos.x,pos.y,47+i)
 			i+=1
 		for unit in self.units:
-			print("no{0} circle in space? ans:{1}".format(unit.no,unit.circle in self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y).subNode))
+			print("no{0} circle in space? ans:{1}".format(unit.no,unit.circle in self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y).subNode))'''
 	def getUnit(self,no):
 		for unit in self.units:
 			if unit.no==no:
@@ -485,13 +485,15 @@ class WarField(KBEngine.Entity):
 					break
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
-		rolekind=2
-		self.run=True
+		rolekind=0
+		#self.run=True
 		#除错代码
 		for unit in self.units:
 			KBEngine.entities[pid].p_addnewUnit(unit.no,rolekind,skillNumberList.list[rolekind],unit.circle.center.x,unit.circle.center.y,0)
 	def playerSignOut(self,pid):
 		self.playerIds.remove(pid)
+		if len(self.playerIds)<=0:
+			self.destroy()
 	def setSpeed(self,new):
 		DEBUG_MSG("setSpeed")
 		for pid in self.playerIds:
