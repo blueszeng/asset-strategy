@@ -64,7 +64,10 @@ class Account(KBEngine.Entity):
 	def p_takeDamage(self,num):
 		self.client.takeDamage(num)
 	def p_useSkill(self,skillindex,tragetNo):
-		self.client.useSkill(skillindex,tragetNo)
+		if type(tragetNo)==list:#多目標技能
+			self.client.useSkillmulti(skillindex,{"list":tragetNo})
+		else:
+			self.client.useSkill(skillindex,tragetNo)
 	def p_beTreat(self,num):
 		self.client.beTreat(num)
 	def p_beRepel(self,arraw,time):#arraw是Vector2
@@ -77,3 +80,5 @@ class Account(KBEngine.Entity):
 		self.client.died()
 	def p_setcanMove(self,m):
 		self.client.setcanMove(m)
+	def p_createEffection(self,effNo,tragetNo):
+		self.client.createEffection(effNo,tragetNo)

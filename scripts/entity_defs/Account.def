@@ -55,6 +55,11 @@
 			<Arg>		INT8		</Arg>
 			<Arg>		INT8		</Arg>
 		</useSkill>
+		<useSkillmulti><!--用於施放多個角色的技能-->
+			<Arg>		INT8		</Arg>
+			<Arg>		SkillList		</Arg>
+			<!--SkillList用於傳目標角色編號列表-->
+		</useSkillmulti>
 		<beTreat>
 			<Arg>		INT8		</Arg>
 		</beTreat>
@@ -73,6 +78,10 @@
 		<setcanMove>
 			<Arg>		INT8		</Arg>
 		</setcanMove>
+		<createEffection>
+			<Arg>		INT16		</Arg>
+			<Arg>		INT8		</Arg>
+		</createEffection>
 	</ClientMethods>
 
 	<BaseMethods>

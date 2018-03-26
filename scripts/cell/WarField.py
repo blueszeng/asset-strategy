@@ -283,14 +283,25 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self._power=p
 	
 	def SkillTo(self,skill,tragetNo):
-		traget=self.manager.getUnit(tragetNo)
-		arg=[skill,traget]
-		if self.f_beforeSkill:
-			for s in self.f_beforeSkill:
-					s(arg)
-		if self.f_beforeBeenSkill:
-			for s in traget.f_beforeBeenSkill:
-					s(arg)
+		if type(tragetNo)==list:
+			for no in tragetNo:
+				traget=self.manager.getUnit(no)
+				arg=[skill,traget]
+				if self.f_beforeSkill:
+					for s in self.f_beforeSkill:
+							s(arg)
+				if self.f_beforeBeenSkill:
+					for s in traget.f_beforeBeenSkill:
+							s(arg)
+		else:
+			traget=self.manager.getUnit(tragetNo)
+			arg=[skill,traget]
+			if self.f_beforeSkill:
+				for s in self.f_beforeSkill:
+						s(arg)
+			if self.f_beforeBeenSkill:
+				for s in traget.f_beforeBeenSkill:
+						s(arg)
 		self.events.append(Event(self.manager.useSkill,[skill.index,tragetNo]))
 	def AfterSkillTo(self,skill,tragetNo):
 		traget=self.manager.getUnit(tragetNo)
@@ -322,8 +333,16 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			self.events.append(Event(self.manager.takeDamage,damage.num))
 			if self.hp<0:
 				self.diedAlready=True
-				self.events.append(Event(self.manager.KillUnit,self))
+				self.events.append(Event(self.manager.KillUnit,self))#這個是這樣的嗎?懷疑點...
 				self.events.append(Event(self.manager.died,damage.damager.no))
+				#刪除存在過的痕跡,以免有些技能用getUnit拿到NoneType
+				for u in self.manager.units:
+					if not u.AI == None and u.AI.traget==self.circle:
+						u.AI.traget=None
+					for index in range(0,len(u.LastSortList)):
+						if u.LastSortList[index].key.id == self.no:
+							del u.LastSortList[index]
+							break
 				if not self.f_afterDied==None:
 					for funcion in self.f_afterDied:
 						funcion(arg)
@@ -362,6 +381,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			newd=Damage(kind,int(num),self)
 			Damage.calAdditon(newd,self.power)
 			Damage.calVulnerable(newd,traget.armor_kind)
+			Damage.calReduce(newd,traget.armor)
 			if not self.f_beforeCauseDamage == None:
 				for function in self.f_beforeCauseDamage:
 					function([traget,newd])
@@ -476,13 +496,6 @@ class WarField(KBEngine.Entity):
 	def KillUnit(self,unit):
 		self.units.remove(unit)
 		self.space.delCircle(unit.circle)
-		for u in self.units:
-			if not u.AI == None:
-				u.AI.traget=None
-			for index in range(0,len(u.LastSortList)):
-				if u.LastSortList[index].key.id == unit.no:
-					del u.LastSortList[index]
-					break
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
 		rolekind=0
@@ -532,6 +545,9 @@ class WarField(KBEngine.Entity):
 	def deleteBuff(self,buffNo):
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_deleteBuff(buffNo)
+	def createEffection(self,arg):
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_createEffection(arg[0],arg[1])
 	def updateEnd(self):
 		DEBUG_MSG("update {0} end-----------------------------------------".format(self.frame_num))
 		for pid in self.playerIds:

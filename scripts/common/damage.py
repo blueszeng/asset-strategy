@@ -46,7 +46,8 @@ class Damage:
 		damage.num+=int(damage.num*(power/100))
 	@staticmethod
 	def calReduce(damage,armor):
-		damage.num-=int(damage.num*(armor/armor+100))
+		print("armor {1} in calreduce {0}".format(armor/(armor+100),armor))
+		damage.num-=int(damage.num*(armor/(armor+100)))
 	def __init__(self,kind,num,damager):
 		self.damager=damager
 		self.num=num

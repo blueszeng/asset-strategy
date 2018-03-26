@@ -70,11 +70,11 @@ class General_remote_atk(Skill):
 			if pair.key.id == self.unit.AI.traget.id:
 				if self.unit.manager.getUnit(pair.key.id)==None:
 					return False
-				print("value{0} radiu{1} range>{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
+				#("value{0} radiu{1} range>{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
 				if pair.value <= self.range +pair.key.radiu and self.cdLeft<=0:
 					#print("canUse return true!!!!!")
 					return True
-		print("in no5 canUse return false!!!!!")
+		#print("in no5 canUse return false!!!!!")
 		return False
 	def respons(self,tragetId):
 		print("self is {0}".format(self))
@@ -189,52 +189,23 @@ class no4_elementProtect(Skill):
 	def trigger(self,damage):
 			#print("in role{0} skill trigger:::::::::::::::::::::::::{0}".format(self.unit.no))
 			if damage.kind==Damage.MAGIC_DAMAGE():
-				if random.randint(1,100)<=50:#50%几率
+				if random.randint(1,100)<=65:#50%几率
 					#print("is magic damage")
 					self.unit.events.append(Event(self.unit.manager.useSkill,[self.index,self.unit.no]))
 					damage.exist=False#无效
 	def onTime(self,time):
 		pass
-class no5_ATK2(Skill):
+class no5_ATK2(General_remote_atk):
 	@property
 	def No(self):
 		return 4#技能编号
 	def __init__(self,radiu,unit,index):
+		super().__init__(radiu,unit,index)
 		self.coolDown=1.5#技能冷却时间
 		self.cdLeft=1.5#当前技能的剩余冷却时间
-		self.kind=Skill.ACTIVE()
-		self.attack=True#是否是角色的基本攻击
-		self.range=unit.AI.FAR_RANGE(radiu)#攻击范围
-		self.unit=unit
-		self.index=index#技能在角色身上的欄位索引
-	def canUse(self,arg):
-		print("in no5 skill canUse roleid{0}".format(self.unit.no))
-		if self.unit.AI==None or self.unit.AI.traget==None or self.unit.LastSortList==None:
-			print("AI 或 list为空")
-			return False
-		for pair in self.unit.LastSortList:
-			if pair.key.id == self.unit.AI.traget.id:
-				if self.unit.manager.getUnit(pair.key.id)==None:
-					return False
-				print("value{0} radiu{1} range>{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
-				if pair.value <= self.range +pair.key.radiu and self.cdLeft<=0:
-					#print("canUse return true!!!!!")
-					return True
-		print("in no5 canUse return false!!!!!")
-		return False
-	def respons(self,tragetId):
-		print("self is {0}".format(self))
-		#print("in skill no0 reapons roleid{0}".format(self.unit.no))
-		self.unit.causeDamage(tragetId,Damage.NORMAL_DAMAGE(),12)
-		self.unit.AfterSkillTo(self,tragetId)
-	def trigger(self,arg):
-		if self.canUse(arg):
-			#print("in no0 skill trigger roleid{0}".format(self.unit.no))
-			self.unit.manager.signUpArrow(5,self.unit.AI.traget,self.unit.circle.center,self.respons,self.unit.AI.traget.id)#AI.traget的形态是圆但是id和它的unit相同
-			self.unit.SkillTo(self,self.unit.AI.traget.id)
-			self.cdLeft=self.coolDown
-	def onTime(self,time):
-		self.cdLeft-=time
+		self.damageKind=Damage.MAGIC_DAMAGE()
+		self.damageNum=10
+		self.missileSpeed=5
 class no6_hotWave(Skill):
 	@property
 	def No(self):
@@ -357,7 +328,7 @@ class no8_MolotovCocktail(Skill):
 					return False
 	def trigger(self,arg):
 		if self.canUse(arg):
-			if random.randint(1,100)<=50:#50%几率
+			if random.randint(1,100)<=25:#25%几率
 				#print("in no8 skill trigger roleid{0}".format(self.unit.no))
 				self.unit.manager.signUpArrow(4,self.traget.circle,self.unit.circle.center,self.respons,self.traget)
 				self.unit.SkillTo(self,self.unit.AI.traget.id)
@@ -416,5 +387,55 @@ class no9_dash(Skill):
 			self.cdLeft=self.coolDown
 	def onTime(self,time):
 		self.cdLeft-=time
+class no13_multiArrow(General_remote_atk):
+	@property
+	def No(self):
+		return 12#技能编号
+	def __init__(self,radiu,unit,index):
+		super().__init__(radiu,unit,index)
+		self.coolDown=4#技能冷却时间
+		self.cdLeft=4#当前技能的剩余冷却时间
+		self.damageKind=Damage.PENETRATION_DAMAGE()
+		self.damageNum=8
+		self.missileSpeed=8
+	def trigger(self,arg):
+		tragets=[]
+		if self.canUse(arg):
+			#print("in no0 skill trigger roleid{0}".format(self.unit.no))
+			for pair in self.unit.LastSortList:
+				if pair.value <= self.range +pair.key.radiu:
+					if not self.unit.manager.getUnit(pair.key.id).ownerid==self.unit.ownerid:#異類即是仇敵
+						self.unit.manager.signUpArrow(self.missileSpeed,pair.key,self.unit.circle.center,self.respons,pair.key.id)#AI.traget的形态是圆但是id和它的unit相同
+						tragets.append(pair.key.id)
+				else:
+					break
+			self.unit.SkillTo(self,tragets)
+			self.cdLeft=self.coolDown
+class no14_ATK4(General_remote_atk):
+	def No(self):
+		return 13#技能编号
+	def __init__(self,radiu,unit,index):
+		super().__init__(radiu,unit,index)
+		self.coolDown=1.0#技能冷却时间
+		self.cdLeft=1.0#当前技能的剩余冷却时间
+		self.damageKind=Damage.PENETRATION_DAMAGE()
+		self.damageNum=10
+		self.missileSpeed=10
+class no15_precisionStrike(Skill):
+	def No(self):
+		return 14
+	def __init__(self,radiu,unit,index):
+		self.kind=Skill.AFTER_CAUSE_DAMAGE()
+		self.attack=True#是否是角色的基本攻击
+		self.unit=unit
+		self.index=index#技能在角色身上的欄位索引
+	def trigger(self,list):
+		damage=list[1]
+		if damage.kind==Damage.PENETRATION_DAMAGE():
+			traget=list[0]
+			traget.causeDamage(traget.no,Damage.REAL_DAMAGE(),5)
+			self.unit.events.append(Event(self.unit.manager.createEffection,[ 0 ,traget.no]))#針對traget 創造編號0的效果
+	def onTime(self,time):
+		pass
 #正文--------------------------------------------------------------------------------------------
-skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail,no9_dash]
+skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike]
