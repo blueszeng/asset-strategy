@@ -387,6 +387,15 @@ class no9_dash(Skill):
 			self.cdLeft=self.coolDown
 	def onTime(self,time):
 		self.cdLeft-=time
+class no10_normal_Atk(General_combat_atk):
+	def __init__(self,radiu,unit,index):
+		super().__init__(radiu,unit,index)
+		
+	@property
+	def No(Self):
+		return 12
+	
+		
 class no13_multiArrow(General_remote_atk):
 	@property
 	def No(self):
@@ -438,4 +447,4 @@ class no15_precisionStrike(Skill):
 	def onTime(self,time):
 		pass
 #正文--------------------------------------------------------------------------------------------
-skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike]
+skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike,no10_normal_Atk]
