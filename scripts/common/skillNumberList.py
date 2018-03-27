@@ -15,7 +15,7 @@ ranges[0]=AI.NEAR_RANGE(2)
 ranges[1]=AI.FAR_RANGE(2)
 ranges[2]=AI.NEAR_RANGE(2)
 ranges[3]=AI.FAR_RANGE(2)
-
+#
 propertys={}
 propertys[0]=[30,Damage.LIGHT_ARMOR(),100]
 propertys[1]=[10,Damage.CLOTH_ARMOR(),80]
