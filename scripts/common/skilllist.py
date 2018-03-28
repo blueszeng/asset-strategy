@@ -446,6 +446,5 @@ class no15_precisionStrike(Skill):
 			self.unit.events.append(Event(self.unit.manager.createEffection,[ 0 ,traget.no]))#針對traget 創造編號0的效果
 	def onTime(self,time):
 		pass
-
 #正文--------------------------------------------------------------------------------------------
 skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike,no10_normal_Atk]
