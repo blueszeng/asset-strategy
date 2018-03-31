@@ -394,12 +394,68 @@ class no10_normal_Atk(General_combat_atk):
 	@property
 	def No(Self):
 		return 12
+		
+class no11_swept(Skill):
+	def __init__(self,radiu,unit,index):
+		self.kind = Skill.AFTER_SKILL()
+		self.unit = unit
+		self.range=unit.AI.NEAR_RANGE(radiu)#攻击范围
+		self.index=index#技能在角色身上的欄位索引
+	
+	def trigger(self,list):
+		skill = list[0]
+		traget = list[1]
+		if skill.attack:
+			for pair in self.unit.LastSortList:
+				if pair.value <= self.range + pair.key.radiu:
+					print("aaaaa:",pair.key.id)
+					
+					
+					if (not (self.unit.manager.getUnit(pair.key.id).ownerid == self.unit.ownerid)) and (not (
+								self.unit.manager.getUnit(pair.key.id).no == traget.no)):#異類即是仇敵
+						positiveDirection = self.unit.direct
+						targetDirection = self.unit.manager.getUnit(pair.key.id).circle.center - self.unit.circle.center
+						targetAngle = Vector2.angleBetween(positiveDirection,targetDirection)
+						
+						if (targetAngle <= 90):
+							print("aaaaa:omg",pair.key.id)
+							targetNum = pair.key.id
+							self.unit.causeDamage(targetNum,Damage.NORMAL_DAMAGE(),10)
+			self.unit.SkillTo(self, traget.no)
+	def onTime(self,time):
+		pass
+
+	@property
+	def No(Self):
+		return 13
+		
+class no12_regeneration(Skill):
+	def __init__(self,radiu,unit,index):
+		self.kind = Skill.AFTER_SKILL()
+		self.unit = unit
+		self.range = unit.AI.NEAR_RANGE(radiu)#攻击范围
+		self.index = index#技能在角色身上的欄位索引
+		self.coolDown = 1.0
+		self.cdTime = 1.0#当前技能的剩余冷却时间
+	
+	def trigger(self,list):
+		traget = list[1]
+		if self.cdTime <= 0:
+			self.unit.healingTo(self.unit.no, 5)
+			self.cdTime = self.coolDown
+		
+	def onTime(self,time):
+		self.cdTime -= time
+
+	@property
+	def No(Self):
+		return 14
 
 
 class no13_multiArrow(General_remote_atk):
 	@property
 	def No(self):
-		return 12#技能编号
+		return 9#技能编号
 	def __init__(self,radiu,unit,index):
 		super().__init__(radiu,unit,index)
 		self.coolDown=4#技能冷却时间
@@ -422,7 +478,7 @@ class no13_multiArrow(General_remote_atk):
 			self.cdLeft=self.coolDown
 class no14_ATK4(General_remote_atk):
 	def No(self):
-		return 13#技能编号
+		return 10#技能编号
 	def __init__(self,radiu,unit,index):
 		super().__init__(radiu,unit,index)
 		self.coolDown=1.0#技能冷却时间
@@ -432,7 +488,7 @@ class no14_ATK4(General_remote_atk):
 		self.missileSpeed=10
 class no15_precisionStrike(Skill):
 	def No(self):
-		return 14
+		return 11
 	def __init__(self,radiu,unit,index):
 		self.kind=Skill.AFTER_CAUSE_DAMAGE()
 		self.attack=True#是否是角色的基本攻击
@@ -447,4 +503,5 @@ class no15_precisionStrike(Skill):
 	def onTime(self,time):
 		pass
 #正文--------------------------------------------------------------------------------------------
-skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike,no10_normal_Atk]
+skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,
+		no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike,no10_normal_Atk, no11_swept, no12_regeneration]
