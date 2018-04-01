@@ -8,7 +8,7 @@ list[1]=[4,5,6,7]
 #no2 陣線先鋒
 list[2]=[8,12,13,14]
 #no3 皇家神射手
-list[3]=[9,10,11]
+list[3]=[9,10,11,15]
 
 ranges={}
 ranges[0]=AI.NEAR_RANGE(2)
