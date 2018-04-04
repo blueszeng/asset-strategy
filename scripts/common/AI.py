@@ -18,12 +18,14 @@ class AI:
 		center=self.unit.circle.center
 		if self.traget==None or (self.traget.center-center).magnitude>self.radiu+self.traget.radiu:
 			for pair in self.unit.LastSortList:
+				print("in AI pair no is {0}".format(pair.key.id))
 				if not manager.getUnit(pair.key.id).ownerid==self.unit.ownerid:#pair.key形态是Circle,value形态是float
 					self.traget= manager.getUnit(pair.key.id).circle#把最近的那个设为目标
+					print("find {0}".format(pair.key.id))
 					break
 			#搜寻后有攻击目标则移动
 			if not self.traget==None:
-				print("has traget after search--1")
+				print("has traget after search--1 no{0}".format(self.traget.id))
 				self.unit.direct=[self.traget.center.x-center.x,self.traget.center.y-center.y]
 				if not self.unit.moving:
 					self.unit.moving=True
@@ -33,7 +35,7 @@ class AI:
 				print("no traget--2")
 		else:#有一个合理的攻击目标
 			self.unit.moving=False
-			print("has traget already--3")
+			print("has traget already--3 no{0}".format(self.traget.id))
 
 class Event:
 	def __init__(self,funcion,arg):

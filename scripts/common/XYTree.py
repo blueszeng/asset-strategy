@@ -68,8 +68,8 @@ class XYTree:
 	def rightBoundary(self):
 		return self.leftBoundary+self.xnum*self.cellWidth
 	def getNode(self,posx,posy):
-		indexX=math.floor((posx-self.leftBoundary)/self.cellWidth)
-		indexY=math.floor((posy-self.upBoundary)/self.cellHeight)
+		indexX=math.floor((round(posx,3)-round(self.leftBoundary,3))/round(self.cellWidth,3))
+		indexY=math.floor((round(posy,3)-round(self.upBoundary,3))/round(self.cellHeight,3))
 		#如果超过边界则放在那个边界,但如果大量的物件都放在边界的话,会变为线性搜寻,效率低下
 		if indexY<0:#超过y上边边界
 			indexY=0
@@ -103,8 +103,8 @@ class XYTree:
 					string+=("\n ->->"+str(node))
 		return string
 	def inSameArea(self,firstx,firsty,secondx,secondy):
-		boolx=(math.floor(firstx/self.cellWidth)==math.floor(secondx/self.cellWidth))
-		booly=(math.floor(firsty/self.cellHeight)==math.floor(secondy/self.cellHeight))
+		boolx=(math.floor(round(firstx,3)/round(self.cellWidth,3))==math.floor(round(secondx,3)/round(self.cellWidth,3)))
+		booly=(math.floor(round(firsty,3)/round(self.cellHeight,3))==math.floor(round(secondy,3)/round(self.cellHeight)))
 		return boolx and booly
 #----------------------------------------------测试代码---------------------------------------------
 '''tree=XYTree(6,6,-15.5,-100,30,30)

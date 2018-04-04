@@ -205,6 +205,10 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.AI=AI(self,range)
 	def update(self,manager):
 		self.LastSortList=manager.space.getSortedCircleList(self.circle.center)
+		templist=[]
+		for pair in self.LastSortList:
+			templist.append(pair.key.id)
+		print("lastSortList be bulid {0}".format(templist))
 		if not self.AI == None:#更新AI
 			#print("no{0} AI update".format(self.no))
 			self.AI.update(manager)
@@ -317,9 +321,9 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			for function in self.f_beforeTakeDamage:
 				function(damage)
 		if damage.exist:
-			DEBUG_MSG("in bef takeDamage hp is{0}".format(self.hp))
+			#DEBUG_MSG("in bef takeDamage hp is{0}".format(self.hp))
 			self.hp-=damage.num
-			DEBUG_MSG("in aft takeDamage hp is{0}".format(self.hp))
+			#DEBUG_MSG("in aft takeDamage hp is{0}".format(self.hp))
 		arg=[damage,self]
 		if not self.diedAlready:#如果角色还没死亡
 			if self.hp<0:#这个判断是因为某些技能能让角色脱离死亡,通过改hp的方式
@@ -333,6 +337,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			self.events.append(Event(self.manager.takeDamage,damage.num))
 			if self.hp<0:
 				self.diedAlready=True
+				self.manager.space.delCircle(self.circle)
 				self.events.append(Event(self.manager.KillUnit,self))#這個是這樣的嗎?懷疑點...
 				self.events.append(Event(self.manager.died,damage.damager.no))
 				#刪除存在過的痕跡,以免有些技能用getUnit拿到NoneType
@@ -340,7 +345,9 @@ class unit:#单位物件包扩圆+转向+属性+事件
 					if not u.AI == None and u.AI.traget==self.circle:
 						u.AI.traget=None
 					for index in range(0,len(u.LastSortList)):
+						print("in died remove sortlist unit is:{0}".format(u.no))
 						if u.LastSortList[index].key.id == self.no:
+							print("remove no{0}".format(self.no))
 							del u.LastSortList[index]
 							break
 				if not self.f_afterDied==None:
@@ -364,7 +371,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 				function(healpoint)
 		
 	def healingTo(self,tragetNo,num):
-		print("heal tragetNo is {0}".format(tragetNo))
+		#print("heal tragetNo is {0}".format(tragetNo))
 		traget=self.manager.getUnit(tragetNo)
 		healpoint=Damage(2,num,self)
 		if not self.f_beforeHealing == None:
@@ -375,7 +382,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			for function in self.f_afterHealing:
 				function([traget,healpoint])
 	def causeDamage(self,tragetNo,kind,num):
-		print("cause tragetNo is {0}".format(tragetNo))
+		#print("cause tragetNo is {0}".format(tragetNo))
 		traget=self.manager.getUnit(tragetNo)
 		if not traget == None:
 			newd=Damage(kind,int(num),self)
@@ -402,7 +409,7 @@ class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
 		if not no in self.shiftRecord.keys():#這個防呆是因為出現過,因為center改變的反射導致space 的record改變,同一個circle被計算shift兩次
 			self.shiftRecord[no]=[x,y]
-		DEBUG_MSG("in shift record no{1} shift is {0}".format(self.shiftRecord[no],no))
+		#DEBUG_MSG("in shift record no{1} shift is {0}".format(self.shiftRecord[no],no))
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		DEBUG_MSG("WarField Cell done")
@@ -432,6 +439,16 @@ class WarField(KBEngine.Entity):
 		if self.run:
 			#先做物理判定
 			self.space.Collied()
+			for unit in self.units:
+				if not unit.circle in self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y).subNode:
+					print("!!!!!!!!!!!!error:unit{0} not in its node!!!!!!!!!!!".format(unit.no))
+					for node in self.space.record:
+						for c in node.subNode:
+							if c == unit.circle:
+								print("unit{0} in node({1},{2})".format(unit.no,node.getIndexX(self.space.circles),node.getIndexY(self.space.circles)))
+								realnode=self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y)
+								print("while node is ({0},{1})".format(realnode.getIndexX(self.space.circles),realnode.getIndexY(self.space.circles)))
+								print("unit pos ({0},{1})".format(unit.circle.center.x,unit.circle.center.y))
 			print("collied end")
 			#處理之前註冊的record
 			for record in self.resigns:
@@ -448,7 +465,7 @@ class WarField(KBEngine.Entity):
 			for unit in self.units:#主逻辑回圈,更新单位的AI,将单位速度和位移传给客户端
 				#DEBUG_MSG("unit{0} center is {1}".format(unit.no,unit.circle.center))
 				self.turnNo(unit.no)#该单位的更新周期开始
-				unit.update(self)
+				unit.update(self)#在这里有创建sortlist->更新AI
 				#更新技能
 				print("no{0} events has {1} event".format(unit.no,len(unit.events)))
 				for event in unit.events:
@@ -458,10 +475,11 @@ class WarField(KBEngine.Entity):
 				#发送挤压的击退值
 				#DEBUG_MSG("circle id{0} lastShiftx:{1} lastShifty:{2} center{3}".format(unit.circle.id,unit.circle.lastShiftx,unit.circle.lastShifty,str(unit.circle.center)))
 				shift=self.shiftRecord[unit.circle.id]
-				print("in shift {0}".format(shift))
+				#
 				if not shift[0]==0 or not shift[1]==0:
 					self.setShift(shift)
-					print("its no is{0}".format(unit.circle.id))
+					print("in shift {0}".format(shift))
+					#print("its no is{0}".format(unit.circle.id))
 				del self.shiftRecord[unit.circle.id]
 				#再做速度移动
 					#DEBUG_MSG("norm:({2},{3}) speed:({0},{1})".format(norm.x*unit.speed*self.cycle,norm.y*unit.speed*self.cycle,norm.x,norm.y))
@@ -472,13 +490,13 @@ class WarField(KBEngine.Entity):
 				if unit.moving and unit.canMove:
 					norm=unit.direct.normalized
 					#debug代码
-					DEBUG_MSG(">>in final moving:{0} canMove{1}".format(unit.moving,unit.canMove))
+					#DEBUG_MSG(">>in final moving:{0} canMove{1}".format(unit.moving,unit.canMove))
 					#DEBUG_MSG("no{0}".format(unit.no))
 					#DEBUG_MSG("norm is "+str(unit.direct.normalized))
 					#------------------------
 					unit.circle.center.x+=norm.x*unit.speed*self.cycle
 					unit.circle.center.y+=norm.y*unit.speed*self.cycle
-				DEBUG_MSG("no{0} final position:{1}".format(unit.no,unit.circle.center))
+				#DEBUG_MSG("no{0} final position:{1}".format(unit.no,unit.circle.center))
 			self.updateEnd()
 	def newUnit(self,rolekind,posx,posy,ownerid):
 		circle=self.space.addCircle(Vector2(posx,posy),unit_radiu)
@@ -495,7 +513,6 @@ class WarField(KBEngine.Entity):
 			#KBEngine.entities[pid].client.int64({"list":[90,99]})
 	def KillUnit(self,unit):
 		self.units.remove(unit)
-		self.space.delCircle(unit.circle)
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
 		rolekind=0
@@ -516,7 +533,7 @@ class WarField(KBEngine.Entity):
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setDirect(new)
 	def setShift(self,new):
-		DEBUG_MSG("setShift {0}".format(new))
+		#DEBUG_MSG("setShift {0}".format(new))
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setShift(new)
 	def setMoving(self,new):
@@ -524,7 +541,7 @@ class WarField(KBEngine.Entity):
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setMoving(new)
 	def turnNo(self,no):
-		DEBUG_MSG("turnNo")
+		DEBUG_MSG("turnNo{0}=============================================".format(no))
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_turnNo(no)
 	def useSkill(self,list):

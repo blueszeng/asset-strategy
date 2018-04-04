@@ -21,7 +21,7 @@ class General_combat_atk(Skill):
 		self.unit=unit
 		self.index=index#技能在角色身上的欄位索引
 	def canUse(self,arg):
-		print("in no0 skill canUse roleid{0}".format(self.unit.no))
+		#print("in no0 skill canUse roleid{0}".format(self.unit.no))
 		if self.unit.AI==None or self.unit.AI.traget==None or not self.unit.canAttack or self.unit.LastSortList==None:
 			print("AI 或 list为空")
 			return False
@@ -29,19 +29,19 @@ class General_combat_atk(Skill):
 			if pair.key.id == self.unit.AI.traget.id:
 				if self.unit.manager.getUnit(pair.key.id)==None:
 					return False
-				print("value{0} radiu{1} range{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
+				#print("value{0} radiu{1} range{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
 				if pair.value <= self.range +pair.key.radiu and self.cdLeft<=0:
-					print("canUse return true!!!!!")
+					#print("canUse return true!!!!!")
 					return True
-		print("canUse return false!!!!!")
+		#print("canUse return false!!!!!")
 		return False
 	def respons(self,tragetId):
-		print("in skill no0 reapons roleid{0}".format(self.unit.no))
+		#print("in skill no0 reapons roleid{0}".format(self.unit.no))
 		self.unit.causeDamage(tragetId,self.damageKind,self.damageNum)
 		self.unit.AfterSkillTo(self,tragetId)
 	def trigger(self,arg):
 		if self.canUse(arg):
-			print("in no0 skill trigger roleid{0}".format(self.unit.no))
+			#print("in no0 skill trigger roleid{0}".format(self.unit.no))
 			self.unit.manager.signUpTime(self.timeBefore,self.respons,self.unit.AI.traget.id)#AI.traget的形态是圆但是id和它的unit相同
 			self.unit.SkillTo(self,self.unit.AI.traget.id)
 			self.cdLeft=self.coolDown
@@ -62,9 +62,9 @@ class General_remote_atk(Skill):
 		self.unit=unit
 		self.index=index#技能在角色身上的欄位索引
 	def canUse(self,arg):
-		print("in no5 skill canUse roleid{0}".format(self.unit.no))
+		#print("in no5 skill canUse roleid{0}".format(self.unit.no))
 		if self.unit.AI==None or self.unit.AI.traget==None or self.unit.LastSortList==None:
-			print("AI 或 list为空")
+			print("AI or list is none?????????????????????????????????????????????")
 			return False
 		for pair in self.unit.LastSortList:
 			if pair.key.id == self.unit.AI.traget.id:
@@ -77,7 +77,7 @@ class General_remote_atk(Skill):
 		#print("in no5 canUse return false!!!!!")
 		return False
 	def respons(self,tragetId):
-		print("self is {0}".format(self))
+		#print("self is {0}".format(self))
 		#print("in skill no0 reapons roleid{0}".format(self.unit.no))
 		self.unit.causeDamage(tragetId,self.damageKind,self.damageNum)
 		self.unit.AfterSkillTo(self,tragetId)
@@ -114,7 +114,7 @@ class no2_flamechop(Skill):
 		self.index=index#技能在角色身上的欄位索引
 	def canUse(self,arg):
 		if self.unit.AI==None or self.unit.AI.traget==None or self.unit.LastSortList==None:
-			print("AI 或 list为空")
+			#print("AI 或 list为空")
 			return False
 		for pair in self.unit.LastSortList:
 			if pair.key.id == self.unit.AI.traget.id:
@@ -124,7 +124,7 @@ class no2_flamechop(Skill):
 				if pair.value <= self.range +pair.key.radiu and self.cdLeft<=0:
 					#print("canUse return true!!!!!")
 					return True
-		print("canUse return false!!!!!")
+		#print("canUse return false!!!!!")
 		return False
 	def respons(self,null):
 		for pair in self.unit.LastSortList:
@@ -158,7 +158,7 @@ class no3_gush(Skill):
 		self.index=index#技能在角色身上的欄位索引
 	def canUse(self,arg):
 		if self.unit.AI==None or self.unit.AI.traget==None or self.unit.LastSortList==None:
-			print("AI 或 list为空")
+			#print("AI 或 list为空")
 			return False
 		if self.cdLeft<=0:
 			return True
@@ -219,9 +219,9 @@ class no6_hotWave(Skill):
 		self.unit=unit
 		self.index=index#技能在角色身上的欄位索引
 	def canUse(self,arg):
-		print("in no6 skill canUse roleid{0}".format(self.unit.no))
+		#print("in no6 skill canUse roleid{0}".format(self.unit.no))
 		if self.unit.AI==None or self.unit.AI.traget==None or self.unit.LastSortList==None:
-			print("AI 或 list为空")
+			#print("AI 或 list为空")
 			return False
 		for pair in self.unit.LastSortList:
 			traget=self.unit.manager.getUnit(pair.key.id)
@@ -355,22 +355,22 @@ class no9_dash(Skill):
 	def No(self):
 		return 8#技能编号
 	def canUse(self,arg):
-		print("in no0 skill canUse roleid{0}".format(self.unit.no))
+		#print("in no0 skill canUse roleid{0}".format(self.unit.no))
 		if self.unit.AI==None or self.unit.AI.traget==None or not self.unit.canAttack or self.unit.LastSortList==None:
-			print("AI 或 list为空")
+			#print("AI 或 list为空")
 			return False
 		for pair in self.unit.LastSortList:
 			if pair.key.id == self.unit.AI.traget.id:
 				if self.unit.manager.getUnit(pair.key.id)==None:
 					return False
-				print("value{0} radiu{1} range{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
+				#print("value{0} radiu{1} range{2} time{3}".format(pair.value,pair.key.radiu,self.range,self.cdLeft))
 				if pair.value > self.range +pair.key.radiu and self.cdLeft<=0:
-					print("canUse return true!!!!!")
+					#print("canUse return true!!!!!")
 					return True
-		print("canUse return false!!!!!")
+		#print("canUse return false!!!!!")
 		return False
 	def onhit(self,selfcircle,other):
-		print("hhhhhhh onhit is really been call.. hhhhhhh")
+		#print("hhhhhhh onhit is really been call.. hhhhhhh")
 		traget=self.unit.manager.getUnit(other.id)
 		if not buffList.coma.no() in traget.buffs.keys():
 			traget.addBuff(buffList.coma,1,self.unit)

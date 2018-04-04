@@ -8,6 +8,8 @@ class Pair:
 	def __init__(self,key,value):
 		self.key=key
 		self.value=value
+	def __str__(self):
+		return "id{0}:{1}".format(self.key.id,self.value)
 class Circle:
 	@property
 	def center(self):
@@ -114,7 +116,7 @@ class XYCollied:
 		self.halfdiagonal=math.sqrt((width/2)*(width/2)+(height/2)*(height/2))#半斜角距离
 		self.shiftCallBack=shiftCallBack
 	def onCircleChange(self,circle):
-		print("::: onCircleChange be call :::new x:{0} y:{1}".format(circle.center.x,circle.center.y))
+		#print("::: onCircleChange be call :::new x:{0} y:{1}".format(circle.center.x,circle.center.y))
 		#print("lastX{0} lastY{1} x{2} y{3} the same{4}".format(circle.lastX,circle.lastY,circle.center.x,circle.center.y,self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y)))
 		if not self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y):#如果移动之后会进入一个新的区域
 			node=self.circles.getNode(circle.lastX,circle.lastY)
@@ -125,6 +127,10 @@ class XYCollied:
 			newnode.subNode.append(circle)
 			if not newnode in self.record:
 				self.record.append(newnode)
+			print("circle move from ({0},{1}) to ({2},{3})".format(node.getIndexX(self.circles),node.getIndexY(self.circles),newnode.getIndexX(self.circles),newnode.getIndexY(self.circles)))
+			print("oripos({0},{1}) newpos({2},{3})".format(circle.lastX,circle.lastY,circle.center.x,circle.center.y))
+			print("in - y is{0} y is{1}".format(circle.lastY-self.circles.upBoundary,circle.center.y-self.circles.upBoundary))
+			print("y1/num{0} y2/num{1}".format(math.floor(circle.lastY/self.circles.cellHeight),math.floor(circle.center.y/self.circles.cellHeight)))
 	def addCircle(self,position,radiu):
 		if	len(self.circles.getNode(position.x,position.y).subNode)==0:#如果node里没有装载节点
 			self.record.append(self.circles.getNode(position.x,position.y))
@@ -317,6 +323,7 @@ class XYCollied:
 					circle.center.y=self.circles.downBoundary
 					#circle.lastShifty+=self.circles.downBoundary-realshift.y
 					print("lastShift y-3")
+				print("no{0} set shift ok".format(circle.id))
 				self.shiftCallBack(circle.id,realshift.x,realshift.y)
 				#改变XYTree
 				self.closeSet[circle.id].shift=Vector2(0,0)
@@ -368,23 +375,38 @@ class XYCollied:
 		return {'closer':closer,'answer':answer}
 	def getSortedCircleList(self,maincenter):#根据距离从近到远
 		sortList=[]
+		print("in bulid sort list")
 		for node in self.record:
 				for circle in node.subNode:
 					distant= (circle.center- maincenter).magnitude
+					print("no{0} dist{1}")
 					if len(sortList)==0:
+						#print("enter 1")
 						sortList.append(Pair(circle,distant))
 					else:
-						for i in range(0,len(sortList)):
-							if i+1>=len(sortList):#扫到尾部
-								if sortList[i].value<distant:
-									sortList.append(Pair(circle,distant))
-								else:
-									sortList.insert(i,Pair(circle,distant))
-								break
-							elif sortList[i].value<distant and sortList[i+1].value>=distant:
-								sortList.insert(i+1,Pair(circle,distant))
-								break
-							
+						#print("enter 0")
+						if sortList[0].value>=distant:
+							#print("enter 01")
+							sortList.insert(0,Pair(circle,distant))
+						else:
+							#print("enter 00")
+							for i in range(0,len(sortList)):
+								if i+1>=len(sortList):#扫到尾部
+									#print("enter 001")
+									if sortList[i].value<distant:
+										#print("")
+										sortList.append(Pair(circle,distant))
+									else:
+										sortList.insert(i,Pair(circle,distant))
+									break
+								elif sortList[i].value<distant and sortList[i+1].value>=distant:
+									#print("enter 000")
+									sortList.insert(i+1,Pair(circle,distant))
+									break
+					templist=[]
+					for pair in sortList:
+						templist.append([pair.key.id,pair.value])
+					print(templist)
 		return sortList
 #class XYCollied end ----------------------------------------------------------------------------------------------------------------------
 '''
