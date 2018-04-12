@@ -6,6 +6,7 @@ class Account(KBEngine.Entity):
 		KBEngine.Entity.__init__(self)
 		DEBUG_MSG("account create cell success!")
 		KBEngine.entities[self.WarFieldId].playerSignIn(self.id)
+		self.debug_owner=True
 		#KBEngine.entities[self.WarFieldId].playerSignIn(self.id)
 		#KBEngine.entities[self.WarFieldId].newUnit(0,0.0,0.0,self.id)
 
@@ -33,13 +34,20 @@ class Account(KBEngine.Entity):
 		#self.moveToPoint(newpos,1.0,0.1,dir,False,True)
 	def createRole(self,expose,roleNo,pos):
 		#debug代码---------由于是测试先用地图位置作为添加假想敌判断标准---------------
-		if(pos.y>0):#假想敌id为4747
+		if(not self.debug_owner):#假想敌id为4747
 			KBEngine.entities[self.WarFieldId].newUnit(roleNo,pos[0],pos[1],4747)
 		else:
 		#-----------------------------------------------------------------------------
 			KBEngine.entities[self.WarFieldId].newUnit(roleNo,pos[0],pos[1],self.id)
-	def debugGame(self,expose):
-		KBEngine.entities[self.WarFieldId].run=True
+	def debugGame(self,expose):#debug模式开始游戏按钮
+		KBEngine.entities[self.WarFieldId].gameStart()
+	def debugTeam(self,expose):
+		self.debug_owner=not self.debug_owner
+		print("after debugTeam debug_owner:{0}".format(self.debug_owner))
+	def p_createTrap(self,expose,trapNo,pos,ownerid):
+		KBEngine.entities[self.WarFieldId].createTrap(trapNo,pos,ownerid)
+	def p_delTrap(self,expose,index):
+		KBEngine.entities[self.WarFieldId].delTrap(trapNo,pos)
 	#======================================================================================
 	def onDestroy( self ):
 		if not self.WarFieldId==-1:#有在房間中

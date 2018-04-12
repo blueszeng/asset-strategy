@@ -525,11 +525,27 @@ class no16_quick_dodge(Skill):
 	@property
 	def No(Self):
 		return 15
-	
-	
-	
-	
+class no17_armed_nimbus(Skill):
+	@property
+	def No(Self):
+		return 16
+	def trigger_aftDied(self,list):
+		diedUnit=list[1]
+		diedUnit.armor-=200
+	def trigger_aftconjure(self,unit):
+		if unit.ownerid==self.unit.ownerid:
+			unit.armor+=200
+			unit.f_afterDied.append(trigger_aftDied)
+	def inBegin(self):
+		for unit in self.unit.manager:
+			if unit.ownerid==self.unit.ownerid:
+				unit.armor+=200
+				unit.f_afterDied.append(trigger_aftDied)
+	def __init__(self, radiu, unit, index):
+		self.kind = [Skill.AFTER_CONJURE,Skill]
+		self.unit = unit
+		self.index = index#技能在角色身上的欄位索引
 #正文--------------------------------------------------------------------------------------------
 skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,
 		no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike,no10_normal_Atk, no11_swept, no12_regeneration,
-		no16_quick_dodge]
+		no16_quick_dodge,no17_armed_nimbus]

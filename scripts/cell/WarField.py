@@ -9,6 +9,7 @@ from skill import Skill
 from damage import Damage
 import skillNumberList
 import buffList
+import trapList
 
 unit_radiu=2
 default_debug=[Vector2(5.0,5.0),Vector2(5.0,-5.0),Vector2(-5.0,5.0)]#用于除错阶段
@@ -127,76 +128,82 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.repel=Repel(self)#被强迫的位移
 		self.diedAlready=False
 		#self.repel=None
-	def initSkill(self,list):
-		for i in range(0,len(list)):
-			nowSkill=skillList[list[i]](self.circle.radiu,self,i)
+	def singledele(self,kind,trigger):
+			if kind==Skill.BEFORE_BEEN_SKILL():
+				if self.f_beforeBeenSkill==None:
+					self.f_beforeBeenSkill=[]
+				self.f_beforeBeenSkill.append(trigger)
+			elif kind==Skill.AFTER_BEEN_SKILL():
+				if self.f_afterBeenSkill==None:
+					self.f_afterBeenSkill=[]
+				self.f_afterBeenSkill.append(trigger)
+			elif kind==Skill.BEFORE_TAKE_DAMAGE():
+				if self.f_beforeTakeDamage==None:
+					self.f_beforeTakeDamage=[]
+				self.f_beforeTakeDamage.append(trigger)
+			elif kind==Skill.AFTER_TAKE_DAMAGE():
+				if self.f_afterTakeDamage==None:
+					self.f_afterTakeDamage=[]
+				self.f_afterTakeDamage.append(trigger)
+			elif kind==Skill.BEFORE_CAUSE_DAMAGE():
+				if self.f_beforeCauseDamage==None:
+					self.f_beforeCauseDamage=[]
+				self.f_beforeCauseDamage.append(trigger)
+			elif kind==Skill.AFTER_CAUSE_DAMAGE():
+				if self.f_afterCauseDamage==None:
+					self.f_afterCauseDamage=[]
+				self.f_afterCauseDamage.append(trigger)
+			elif kind==Skill.BEFORE_SKILL():
+				if self.f_beforeSkill==None:
+					self.f_beforeSkill=[]
+				self.f_beforeSkill.append(trigger)
+			elif kind==Skill.AFTER_SKILL():
+				if self.f_afterSkill==None:
+					self.f_afterSkill=[]
+				self.f_afterSkill.append(trigger)
+			elif kind==Skill.BRFORE_HEAL():
+				if self.f_beforeHealing==None:
+					self.f_beforeHealing=[]
+				self.f_beforeHealing.append(trigger)
+			elif kind==Skill.AFTER_HEAL():
+				if self.f_afterHealing==None:
+					self.f_afterHealing=[]
+				self.f_afterHealing.append(trigger)
+			elif kind==Skill.BRFORE_BEEN_HEAL():
+				if self.f_beforeBeenHealing==None:
+					self.f_beforeBeenHealing=[]
+				self.f_beforeBeenHealing.append(trigger)
+			elif kind==Skill.AFTER_BEEN_HEAL():
+				if self.f_afterBeenHealing==None:
+					self.f_afterBeenHealing=[]
+				self.f_afterBeenHealing.append(trigger)
+			elif kind==Skill.BEFORE_KILL():
+				if self.f_beforeKill==None:
+					self.f_beforeKill=[]
+				self.f_beforeKill.append(trigger)
+			elif kind==Skill.AFTER_KILL():
+				if self.f_afterKill==None:
+					self.f_afterKill=[]
+				self.f_afterKill.append(trigger)
+			elif kind==Skill.BEORE_DIED():
+				if self.f_beforeDied==None:
+					self.f_beforeDied=[]
+				self.f_beforeDied.append(trigger)
+			elif kind==Skill.AFTER_DIED():
+				if self.f_afterDied==None:
+					self.f_afterDied=[]
+				self.f_afterDied.append(trigger)
+	def initSkill(self,sList):
+		for i in range(0,len(sList)):
+			nowSkill=skillList[sList[i]](self.circle.radiu,self,i)
 			DEBUG_MSG("on initskill {0}".format(i))
 			#主動技能不註冊
 			#註冊觸發方法
-			if nowSkill.kind==Skill.BEFORE_BEEN_SKILL():
-				if self.f_beforeBeenSkill==None:
-					self.f_beforeBeenSkill=[]
-				self.f_beforeBeenSkill.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_BEEN_SKILL():
-				if self.f_afterBeenSkill==None:
-					self.f_afterBeenSkill=[]
-				self.f_afterBeenSkill.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.BEFORE_TAKE_DAMAGE():
-				if self.f_beforeTakeDamage==None:
-					self.f_beforeTakeDamage=[]
-				self.f_beforeTakeDamage.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_TAKE_DAMAGE():
-				if self.f_afterTakeDamage==None:
-					self.f_afterTakeDamage=[]
-				self.f_afterTakeDamage.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.BEFORE_CAUSE_DAMAGE():
-				if self.f_beforeCauseDamage==None:
-					self.f_beforeCauseDamage=[]
-				self.f_beforeCauseDamage.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_CAUSE_DAMAGE():
-				if self.f_afterCauseDamage==None:
-					self.f_afterCauseDamage=[]
-				self.f_afterCauseDamage.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.BEFORE_SKILL():
-				if self.f_beforeSkill==None:
-					self.f_beforeSkill=[]
-				self.f_beforeSkill.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_SKILL():
-				if self.f_afterSkill==None:
-					self.f_afterSkill=[]
-				self.f_afterSkill.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.BRFORE_HEAL():
-				if self.f_beforeHealing==None:
-					self.f_beforeHealing=[]
-				self.f_beforeHealing.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_HEAL():
-				if self.f_afterHealing==None:
-					self.f_afterHealing=[]
-				self.f_afterHealing.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.BRFORE_BEEN_HEAL():
-				if self.f_beforeBeenHealing==None:
-					self.f_beforeBeenHealing=[]
-				self.f_beforeBeenHealing.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_BEEN_HEAL():
-				if self.f_afterBeenHealing==None:
-					self.f_afterBeenHealing=[]
-				self.f_afterBeenHealing.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.BEFORE_KILL():
-				if self.f_beforeKill==None:
-					self.f_beforeKill=[]
-				self.f_beforeKill.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_KILL():
-				if self.f_afterKill==None:
-					self.f_afterKill=[]
-				self.f_afterKill.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.BEORE_DIED():
-				if self.f_beforeDied==None:
-					self.f_beforeDied=[]
-				self.f_beforeDied.append(nowSkill.trigger)
-			elif nowSkill.kind==Skill.AFTER_DIED():
-				if self.f_afterDied==None:
-					self.f_afterDied=[]
-				self.f_afterDied.append(nowSkill.trigger)
+			if type(nowSkill.kind)==list:
+				for i in range(0,len(nowSkill.kind)):#多重响应技能需要一个kind列表和一个trigger列表
+					self.singledele(nowSkill.kind[i],nowSkill.triggers[i])	
+			else:
+				self.singledele(nowSkill.kind,nowSkill.trigger)
 			self.skills.append(nowSkill)
 	def initProperty(self,armor,armor_kind,hp,range=AI.NEAR_RANGE(unit_radiu)):
 		self.armor=armor
@@ -205,10 +212,10 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.AI=AI(self,range)
 	def update(self,manager):
 		self.LastSortList=manager.space.getSortedCircleList(self.circle.center)
-		templist=[]
+		'''templist=[]
 		for pair in self.LastSortList:
 			templist.append(pair.key.id)
-		print("lastSortList be bulid {0}".format(templist))
+		print("lastSortList be bulid {0}".format(templist))'''
 		if not self.AI == None:#更新AI
 			#print("no{0} AI update".format(self.no))
 			self.AI.update(manager)
@@ -430,6 +437,11 @@ class WarField(KBEngine.Entity):
 			i+=1
 		for unit in self.units:
 			print("no{0} circle in space? ans:{1}".format(unit.no,unit.circle in self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y).subNode))'''
+	def gameStart(self):
+		self.run=True
+		for unit in self.units:
+			for skill in unit.skills:
+				skill.inBegin()
 	def getUnit(self,no):
 		for unit in self.units:
 			if unit.no==no:
@@ -511,6 +523,8 @@ class WarField(KBEngine.Entity):
 			DEBUG_MSG("pid is {0}".format(pid))
 			KBEngine.entities[pid].p_addnewUnit(unitNo,rolekind,skillNumberList.list[rolekind],posx,posy,ownerid)
 			#KBEngine.entities[pid].client.int64({"list":[90,99]})
+	#def createTrap(self,no,pos):
+		
 	def KillUnit(self,unit):
 		self.units.remove(unit)
 	def playerSignIn(self,pid):

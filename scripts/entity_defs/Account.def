@@ -82,6 +82,10 @@
 			<Arg>		INT16		</Arg>
 			<Arg>		INT8		</Arg>
 		</createEffection>
+		<addTrap>
+			<Arg>		INT8		</Arg>
+			<Arg>		VECTOR2		</Arg>
+		</addTrap>
 	</ClientMethods>
 
 	<BaseMethods>
@@ -103,6 +107,17 @@
 		<debugGame>
 			<Exposed/>
 		</debugGame>
+		<debugTeam>
+			<Exposed/>
+		</debugTeam>
+		<createTrap>
+			<Arg>		INT8		</Arg>
+			<Arg>		VECTOR2		</Arg>
+			<Arg>		INT32		</Arg>
+		</createTrap>
+		<delTrap>
+			<Arg>		INT8		</Arg>
+		</delTrap>
 	</CellMethods>
 
 </root>

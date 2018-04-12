@@ -375,11 +375,11 @@ class XYCollied:
 		return {'closer':closer,'answer':answer}
 	def getSortedCircleList(self,maincenter):#根据距离从近到远
 		sortList=[]
-		print("in bulid sort list")
+		#print("in bulid sort list")
 		for node in self.record:
 				for circle in node.subNode:
 					distant= (circle.center- maincenter).magnitude
-					print("no{0} dist{1}")
+		#			print("no{0} dist{1}")
 					if len(sortList)==0:
 						#print("enter 1")
 						sortList.append(Pair(circle,distant))
@@ -403,10 +403,10 @@ class XYCollied:
 									#print("enter 000")
 									sortList.insert(i+1,Pair(circle,distant))
 									break
-					templist=[]
+		'''			templist=[]
 					for pair in sortList:
 						templist.append([pair.key.id,pair.value])
-					print(templist)
+					print(templist)'''
 		return sortList
 #class XYCollied end ----------------------------------------------------------------------------------------------------------------------
 '''

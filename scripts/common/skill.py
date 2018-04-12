@@ -53,11 +53,16 @@ class Skill:
 	@staticmethod
 	def AFTER_KILL():
 		return 17
+	@staticmethod
+	def AFTER_CONJURE():
+		return 18
 	def __init__(self):
 		self.coolDown=0#技能冷却时间
 		self.cdLeft=0#当前技能的剩余冷却时间
 		self.kind=self.ACTIVE()
 		self.attack=False#是否是角色的基本攻击
+	def inBegin(self):
+		pass
 	def canUse(self,arg):
 		pass
 	def trigger(self,arg):
