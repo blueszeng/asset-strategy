@@ -447,9 +447,6 @@ class WarField(KBEngine.Entity):
 		DEBUG_MSG("WarField Cell done")
 		self.space=XYCollied(2,4,-4*unit_radiu,-8*unit_radiu,4*unit_radiu,4*unit_radiu,self.shiftCallBack)#圆半径是10,格子宽度是两个圆也就是10*2 *2
 		#设置round
-		self.rCounter=roundCount([playerIds[0],4747],5)
-		self.rCounter.totalEnd.append(self.gameStart)
-		
 		self.units=[]
 		self.traps=[]#记录陷阱物件
 		self.cemetery=[]#存放死去的单位
@@ -566,11 +563,11 @@ class WarField(KBEngine.Entity):
 
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
+		self.rCounter=roundCount([self.playerIds[0],4747],5)
+		self.rCounter.totalEnd.append(self.gameStart)
+		
 		rolekind=0
 		#self.run=True
-		#除错代码
-		for unit in self.units:
-			KBEngine.entities[pid].p_addnewUnit(unit.no,rolekind,skillNumberList.list[rolekind],unit.circle.center.x,unit.circle.center.y,0)
 	def playerSignOut(self,pid):
 		self.playerIds.remove(pid)
 		if len(self.playerIds)<=0:
