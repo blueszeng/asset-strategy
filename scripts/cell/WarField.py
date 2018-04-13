@@ -345,7 +345,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 			if self.hp<0:
 				self.diedAlready=True
 				self.manager.space.delCircle(self.circle)
-				self.events.append(Event(self.manager.KillUnit,self))#這個是這樣的嗎?懷疑點...
+				self.events.append(Event(self.manager.KillUnit,self))
 				self.events.append(Event(self.manager.died,damage.damager.no))
 				#刪除存在過的痕跡,以免有些技能用getUnit拿到NoneType
 				for u in self.manager.units:
@@ -412,23 +412,54 @@ class unit:#单位物件包扩圆+转向+属性+事件
 	def deleteBuff(self,buff):
 		self.disabledBuffNo.append(buff.no())
 		self.events.append(Event(self.manager.deleteBuff,buff.no()))
+class roundCount:
+	def __init__(self,nolist,round):
+		self.roleNoList=nolist
+		self.roundCount=0
+		self.Max=round
+		self.roundStart=[]
+		self.roundEnd=[]
+		self.beginTrap=[]
+		self.totalEnd=[]
+	def nextround(self):
+		if not self.roundCount==0:
+			index=self.roundCount%len(nolist)
+			self.roundEnd(nolist[index])
+		self.roundCount+=1
+		if(self.roundCount>Max):
+			self.totalEnd()
+		else:
+			index=self.roundCount%len(nolist)
+			self.roundStart(nolist[index])
 class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
 		if not no in self.shiftRecord.keys():#這個防呆是因為出現過,因為center改變的反射導致space 的record改變,同一個circle被計算shift兩次
 			self.shiftRecord[no]=[x,y]
 		#DEBUG_MSG("in shift record no{1} shift is {0}".format(self.shiftRecord[no],no))
+	def gameStart(self):
+		self.run=True
+		for unit in self.units:
+			for skill in unit.skills:
+				skill.inBegin()
+		self.rCounter=None
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		DEBUG_MSG("WarField Cell done")
 		self.space=XYCollied(2,4,-4*unit_radiu,-8*unit_radiu,4*unit_radiu,4*unit_radiu,self.shiftCallBack)#圆半径是10,格子宽度是两个圆也就是10*2 *2
+		#设置round
+		self.rCounter=roundCount([playerIds[0],4747],5)
+		self.rCounter.totalEnd.append(self.gameStart)
+		
 		self.units=[]
+		self.traps=[]#记录陷阱物件
 		self.cemetery=[]#存放死去的单位
-		self.resigns=[]
+		self.resigns=[]#延迟触发记录
 		self.playerIds=[]
 		self.cycle=0.1#更新周期
 		self.timerId=self.addTimer(0.1,0.1,0)
 		self.shiftRecord={}
-		self.frame_num=1
+		self.frame_num=1#用来记录第几帧
+		self.trapCount=0#用来产生陷阱的no
 		self.run=False
 		#除错代码
 		'''i=0
@@ -437,11 +468,7 @@ class WarField(KBEngine.Entity):
 			i+=1
 		for unit in self.units:
 			print("no{0} circle in space? ans:{1}".format(unit.no,unit.circle in self.space.circles.getNode(unit.circle.center.x,unit.circle.center.y).subNode))'''
-	def gameStart(self):
-		self.run=True
-		for unit in self.units:
-			for skill in unit.skills:
-				skill.inBegin()
+
 	def getUnit(self,no):
 		for unit in self.units:
 			if unit.no==no:
@@ -523,10 +550,20 @@ class WarField(KBEngine.Entity):
 			DEBUG_MSG("pid is {0}".format(pid))
 			KBEngine.entities[pid].p_addnewUnit(unitNo,rolekind,skillNumberList.list[rolekind],posx,posy,ownerid)
 			#KBEngine.entities[pid].client.int64({"list":[90,99]})
-	#def createTrap(self,no,pos):
-		
 	def KillUnit(self,unit):
 		self.units.remove(unit)
+	def createTrap(self,trapNo,posx,posy,ownerId):
+		self.traps.append(trapList.trapList[trapNo](self,self.trapCount,ownerId))
+		trapCount+=1
+		if not self.rCounter==None:
+			self.rCounter.nextround()
+	def delTrap(self,trapNo):
+		for trap in self.traps:
+			if trap.no == trapNo:
+				self.traps.remove(trap)
+				trap.befDestory()
+				return
+
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
 		rolekind=0

@@ -113,11 +113,7 @@
 		<createTrap>
 			<Arg>		INT8		</Arg>
 			<Arg>		VECTOR2		</Arg>
-			<Arg>		INT32		</Arg>
 		</createTrap>
-		<delTrap>
-			<Arg>		INT8		</Arg>
-		</delTrap>
 	</CellMethods>
 
 </root>

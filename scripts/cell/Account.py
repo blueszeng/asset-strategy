@@ -39,6 +39,12 @@ class Account(KBEngine.Entity):
 		else:
 		#-----------------------------------------------------------------------------
 			KBEngine.entities[self.WarFieldId].newUnit(roleNo,pos[0],pos[1],self.id)
+	def createTrap(self,expose,trapNo,pos):
+		if(not self.debug_owner):#假想敌id为4747
+			KBEngine.entities[self.WarFieldId].newUnit(roleNo,pos[0],pos[1],4747)
+		else:
+		#-----------------------------------------------------------------------------
+			KBEngine.entities[self.WarFieldId].newUnit(roleNo,pos[0],pos[1],self.id)
 	def debugGame(self,expose):#debug模式开始游戏按钮
 		KBEngine.entities[self.WarFieldId].gameStart()
 	def debugTeam(self,expose):
