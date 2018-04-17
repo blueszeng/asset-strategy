@@ -10,13 +10,13 @@ list[2]=[8,12,13,14]
 #no3 皇家神射手
 list[3]=[9,10,11,15]
 #no4 钢铁护卫
-list[4]=[16]
+list[4]=[16,17]
 ranges={}
 ranges[0]=AI.NEAR_RANGE(2)
 ranges[1]=AI.FAR_RANGE(2)
 ranges[2]=AI.NEAR_RANGE(2)
 ranges[3]=AI.FAR_RANGE(2)
-ranges[4]=AI.FAR_RANGE(2)
+ranges[4]=AI.NEAR_RANGE(2)
 #
 propertys={}
 propertys[0]=[30,Damage.LIGHT_ARMOR(),100]

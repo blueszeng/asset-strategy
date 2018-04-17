@@ -535,17 +535,35 @@ class no17_armed_nimbus(Skill):
 	def trigger_aftconjure(self,unit):
 		if unit.ownerid==self.unit.ownerid:
 			unit.armor+=200
-			unit.f_afterDied.append(trigger_aftDied)
+			unit.f_afterDied.append(self.trigger_aftDied)
 	def inBegin(self):
-		for unit in self.unit.manager:
+		for unit in self.unit.manager.units:
 			if unit.ownerid==self.unit.ownerid:
 				unit.armor+=200
-				unit.f_afterDied.append(trigger_aftDied)
+				if unit.f_afterDied == None:
+					unit.f_afterDied=[]
+				unit.f_afterDied.append(self.trigger_aftDied)
 	def __init__(self, radiu, unit, index):
-		self.kind = [Skill.AFTER_CONJURE,Skill]
+		self.kind = [Skill.AFTER_CONJURE,Skill.AFTER_DIED]
+		self.triggers = [self.trigger_aftconjure, self.trigger_aftDied]
 		self.unit = unit
 		self.index = index#技能在角色身上的欄位索引
+		
+	def onTime(self, time):
+		pass
+
+class no18_ATK5(General_combat_atk):
+	@property
+	def No(self):
+		return 17#技能编号
+	def __init__(self,radiu,unit,index):
+		super().__init__(radiu,unit,index)
+		self.coolDown=1.0#技能冷却时间
+		self.cdLeft=1.0#当前技能的剩余冷却时间
+		self.damageKind=Damage.NORMAL_DAMAGE()
+		self.damageNum=8
+		self.timeBefore=0.2
 #正文--------------------------------------------------------------------------------------------
 skillList=[no1_ATK,no2_flamechop,no3_gush,no4_elementProtect,no5_ATK2,no6_hotWave,no7_livingBomb,
 		no8_MolotovCocktail,no9_dash,no13_multiArrow,no14_ATK4,no15_precisionStrike,no10_normal_Atk, no11_swept, no12_regeneration,
-		no16_quick_dodge,no17_armed_nimbus]
+		no16_quick_dodge,no17_armed_nimbus,no18_ATK5]
