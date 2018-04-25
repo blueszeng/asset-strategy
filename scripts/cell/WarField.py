@@ -12,7 +12,7 @@ import buffList
 import trapList
 
 unit_radiu=2
-default_debug=[Vector2(5.0,5.0),Vector2(5.0,-5.0),Vector2(-5.0,5.0)]#用于除错阶段
+#default_debug=[Vector2(5.0,5.0),Vector2(5.0,-5.0),Vector2(-5.0,5.0)]#用于除错阶段
 
 class Repel:
 	def __init__(self,unit):
@@ -417,20 +417,25 @@ class roundCount:
 		self.roleNoList=nolist
 		self.roundCount=0
 		self.Max=round
+		print("in roundCount`s __init__ {0}".format(self.Max))
 		self.roundStart=[]
 		self.roundEnd=[]
 		self.beginTrap=[]
 		self.totalEnd=[]
 	def nextround(self):
 		if not self.roundCount==0:
-			index=self.roundCount%len(nolist)
-			self.roundEnd(nolist[index])
+			index=self.roundCount%len(self.roleNoList)#round数量mod总玩家数得到当前应该是第几个玩家
+			for function in self.roundEnd:
+				function(self.roleNoList[index])
 		self.roundCount+=1
-		if(self.roundCount>Max):
-			self.totalEnd()
+		if(self.roundCount>self.Max):
+			for function in self.totalEnd:
+				function()
 		else:
-			index=self.roundCount%len(nolist)
-			self.roundStart(nolist[index])
+			index=self.roundCount%len(self.roleNoList)
+			print("in round start len is:{0}".format(len(self.roundStart)))
+			for function in self.roundStart:
+				function(self.roleNoList[index])
 class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
 		if not no in self.shiftRecord.keys():#這個防呆是因為出現過,因為center改變的反射導致space 的record改變,同一個circle被計算shift兩次
@@ -458,6 +463,7 @@ class WarField(KBEngine.Entity):
 		self.frame_num=1#用来记录第几帧
 		self.trapCount=0#用来产生陷阱的no
 		self.run=False
+		self.rCounter=None
 		#除错代码
 		'''i=0
 		for pos in default_debug:
@@ -549,24 +555,36 @@ class WarField(KBEngine.Entity):
 			#KBEngine.entities[pid].client.int64({"list":[90,99]})
 	def KillUnit(self,unit):
 		self.units.remove(unit)
-	def createTrap(self,trapNo,posx,posy,ownerId):
-		self.traps.append(trapList.trapList[trapNo](self,self.trapCount,ownerId))
-		trapCount+=1
+	def createTrap(self,trapKind,posx,posy,ownerId):
+		self.traps.append(trapList.trapList[trapKind](self,self.trapCount,ownerId))
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_createTrap(trapKind,self.trapCount,(posx,posy),ownerId)
+		self.trapCount+=1
 		if not self.rCounter==None:
 			self.rCounter.nextround()
+		
 	def delTrap(self,trapNo):
 		for trap in self.traps:
 			if trap.no == trapNo:
 				self.traps.remove(trap)
 				trap.befDestory()
+				for pid in self.playerIds:
+					KBEngine.entities[pid].p_deleteTrap(trapNo)
 				return
 
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
-		self.rCounter=roundCount([self.playerIds[0],4747],5)
-		self.rCounter.totalEnd.append(self.gameStart)
-		
-		rolekind=0
+		if len(self.playerIds)>=self.playerNum:#如果已经有和预计人数一样多的玩家时
+			if self.rCounter == None:#建新回合计数器
+				if self.mode == 0:
+					self.rCounter=roundCount([self.playerIds[0],4747],10)
+				else:
+					self.rCounter=roundCount(self.playerIds[:],10)
+					print("after bulid rCounter playerIds is{0}".format(self.playerIds))
+				for id in self.playerIds:
+					self.rCounter.roundStart.append(KBEngine.entities[id].client.roundBegin)
+				self.rCounter.totalEnd.append(self.gameStart)
+				self.rCounter.nextround()
 		#self.run=True
 	def playerSignOut(self,pid):
 		self.playerIds.remove(pid)

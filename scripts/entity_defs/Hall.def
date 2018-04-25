@@ -1,0 +1,20 @@
+<root>
+	<Properties>
+		<idleRoomNum>
+			<Type>	INT32		</Type>
+			<Flags>	BASE	</Flags>
+			<Default>	5	</Default>
+			<Persistent>	false	</Persistent>
+		</idleRoomNum>
+	</Properties>
+
+	<ClientMethods>
+	</ClientMethods>
+
+	<BaseMethods>
+	</BaseMethods>
+
+	<CellMethods>
+	</CellMethods>
+
+</root>

@@ -9,7 +9,7 @@ class Account(KBEngine.Proxy):
 	def __init__(self):
 		KBEngine.Proxy.__init__(self)
 		DEBUG_MSG("account createCellEntity")
-		KBEngine.createBaseAnywhere("WarField",{},self.fieldOk)
+		self.state=0#0:空闲,; 1:匹配中; 2:游戏中
 		#if  KBEngine.globalData.has_key["space"]:
 		#	self.createCellEntity(KBEngine.globalData["space"].cell)
 		#else:
@@ -31,7 +31,7 @@ class Account(KBEngine.Proxy):
 		"""
 		#self.cellData["position"]=(0,0,0)
 		#self.cellData["WarFieldId"]=KBEngine.globalData["one"].id#加入warField的id用于cell类别的呼叫方法
-		DEBUG_MSG("global one.cell is{0}".format(KBEngine.globalData["one"].cell))
+		DEBUG_MSG("global Hall is{0}".format(KBEngine.globalData["Hall"]))
 		#self.createCellEntity(KBEngine.globalData["one"].cell)
 		INFO_MSG("account[%i] entities enable. mailbox:%s" % (self.id, self.client))
 			
@@ -49,10 +49,17 @@ class Account(KBEngine.Proxy):
 		客户端对应实体已经销毁
 		"""
 		DEBUG_MSG("Account[%i].onClientDeath:" % self.id)
-		self.destroyCellEntity()
+		if self.state==1:
+			KBEngine.globalData["Hall"].removeWaiter(self)
+		if not self.cell == None:
+			self.destroyCellEntity()
 	def onLoseCell(self):
 		self.destroy()
 	def onGetCell(self):
 		pass
 	def createSpace(self):
 		self.space = pymunk.Space()
+	def startDebugMode(self):
+		KBEngine.createBaseAnywhere("WarField",{},self.fieldOk)
+	def startMatching(self):
+		KBEngine.globalData["Hall"].addToWaiterList(self)

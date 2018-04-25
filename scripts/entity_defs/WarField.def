@@ -1,5 +1,17 @@
 <root>
 	<Properties>
+		<playerNum>
+			<Type>	INT32		</Type>
+			<Flags>	CELL_PRIVATE	</Flags>
+			<Default>	47	</Default>
+			<Persistent>	false	</Persistent>
+		</playerNum>
+		<mode>
+			<Type>	INT8		</Type>
+			<Flags>	CELL_PRIVATE	</Flags>
+			<Default>	0	</Default>
+			<Persistent>	false	</Persistent>
+		</mode>
 	</Properties>
 
 	<ClientMethods>

@@ -5,7 +5,7 @@ from KBEDebug import *
 
 def addToOne(entity):#把entity註冊到one這樣帳號才知道戰場在哪
 	DEBUG_MSG("add to one be called!!!")
-	KBEngine.globalData["one"]=entity
+	KBEngine.globalData["Hall"]=entity
 
 def onBaseAppReady(isBootstrap):#準備完成後創建第一個戰場，戰場用於生成空間
 	"""
@@ -15,7 +15,7 @@ def onBaseAppReady(isBootstrap):#準備完成後創建第一個戰場，戰場�
 	@type isBootstrap: BOOL
 	"""
 	if isBootstrap:
-		 KBEngine.createBaseAnywhere("WarField",{},addToOne)
+		 KBEngine.createBaseAnywhere("Hall",{"idleRoomNum":5},addToOne)
 	INFO_MSG('onBaseAppReady: isBootstrap=%s, appID=%s, bootstrapGroupIndex=%s, bootstrapGlobalIndex=%s' % \
 	 (isBootstrap, os.getenv("KBE_COMPONENTID"), os.getenv("KBE_BOOTIDX_GROUP"), os.getenv("KBE_BOOTIDX_GLOBAL")))
 

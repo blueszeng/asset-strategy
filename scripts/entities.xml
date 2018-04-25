@@ -8,4 +8,5 @@
 	<!-- <Avatar/> -->
 	<Account hasCell="true" hasBase="true" hasClient="true"></Account><!-- <Account hasCell="true" hasBase="true" hasClient="true"></Account> -->
 	<WarField hasCell="true" hasBase="true" hasClient="false" ></WarField>
+	<Hall hasCell="false" hasBase="true" hasClient="false" ></Hall>
 	</root>

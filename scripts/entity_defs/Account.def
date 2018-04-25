@@ -18,6 +18,7 @@
 
 	<ClientMethods>
 		<cellReady>
+			<Arg>		INT8		</Arg><!--游戏模式-->
 		</cellReady>
 		<addNewUnit>
 			<Arg>		INT8		</Arg>
@@ -83,15 +84,29 @@
 			<Arg>		INT8		</Arg>
 		</createEffection>
 		<addTrap>
+			<Arg>		INT16		</Arg>
 			<Arg>		INT8		</Arg>
 			<Arg>		VECTOR2		</Arg>
+			<Arg>		INT32		</Arg>
 		</addTrap>
+		<delTrap>
+			<Arg>		INT8		</Arg>
+		</delTrap>
+		<roundBegin>
+			<Arg>		INT32		</Arg>
+		</roundBegin>
 	</ClientMethods>
 
 	<BaseMethods>
 		<createSpace>
 			<Exposed/>
 		</createSpace>
+		<startDebugMode>
+			<Exposed/>
+		</startDebugMode>
+		<startMatching>
+			<Exposed/>
+		</startMatching>
 	</BaseMethods>
 
 	<CellMethods>
@@ -111,9 +126,13 @@
 			<Exposed/>
 		</debugTeam>
 		<createTrap>
-			<Arg>		INT8		</Arg>
+			<Exposed/>
+			<Arg>		INT16		</Arg>
 			<Arg>		VECTOR2		</Arg>
 		</createTrap>
+		<clientloadingReady>
+			<Exposed/>
+		</clientloadingReady>
 	</CellMethods>
 
 </root>
