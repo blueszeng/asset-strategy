@@ -115,6 +115,55 @@ class XYCollied:
 		self.closeSet={}
 		self.halfdiagonal=math.sqrt((width/2)*(width/2)+(height/2)*(height/2))#半斜角距离
 		self.shiftCallBack=shiftCallBack
+	def castCircle(self,center,radiu):#这个方法不会根据距离排序
+		ans=[]
+		for node in self.record:
+			for circle in node.subNode:
+				dis=Vector2.distantBetween(circle.center,center)
+				#print("in cast circle circle{0} center{2} dis{1}".format(circle.id,dis,circle.center))
+				if dis <=radiu+circle.radiu:
+					data=Pair(circle,dis)
+					ans.append(data)
+		return ans
+	def castRadiuCircle(self,center,radiu):#只能用在直径小于区域格半径
+		node=self.circles.getNode(center.x,center.y)
+		considerSet=node.subNode[:]#考虑集合,用来记录需要考虑的所有圆,只在建立closeSet中使用
+		#计算可能碰撞的区域应该有4个这个推算建立于:所有圆都小于等于格子长的1/2
+		xdir=0
+		ydir=0
+		if (not node.left==None) and (center.x%self.circles.cellWidth)<=0.5*self.circles.cellWidth:#说明圆心在格子的左侧
+			#print("enter left")
+			xdir=-1
+			considerSet+=node.left.subNode
+		elif (not node.right==None) and (center.x%self.circles.cellWidth)>0.5*self.circles.cellWidth:
+			#print("enter right")
+			xdir=1
+			considerSet+=node.right.subNode
+		if (not node.down==None) and center.y%self.circles.cellHeight>0.5*self.circles.cellHeight:#下
+			#print("enter down")
+			ydir=-1
+			considerSet+=node.down.subNode
+		elif (not node.up==None) and center.y%self.circles.cellHeight<=0.5*self.circles.cellHeight:
+			#print("enter up")
+			ydir=1
+			considerSet+=node.up.subNode
+		if	not xdir==0 and not ydir==0:
+			if xdir>0:
+				if ydir>0:#右上
+					considerSet+=node.right.up.subNode
+				else:
+					considerSet+=node.right.down.subNode
+			else:
+				if ydir>0:#左上
+					considerSet+=node.left.up.subNode
+				else:
+					considerSet+=node.left.down.subNode
+		ans=[]
+		for circle in considerSet:
+			dis=Vector2.distantBetween(circle.center,center)
+			if(dis<radiu+circle.radiu):
+				ans.append(Pair(circle,dis))
+		return ans
 	def onCircleChange(self,circle):
 		#print("::: onCircleChange be call :::new x:{0} y:{1}".format(circle.center.x,circle.center.y))
 		#print("lastX{0} lastY{1} x{2} y{3} the same{4}".format(circle.lastX,circle.lastY,circle.center.x,circle.center.y,self.circles.inSameArea(circle.lastX,circle.lastY,circle.center.x,circle.center.y)))
@@ -286,6 +335,7 @@ class XYCollied:
 		#print("end collied-------------------------------------")
 		for node in self.record:
 			for circle in node.subNode:
+				print("calculate no{0} shift".format(circle.id))
 				oriPos=circle.center
 				realshift=self.closeSet[circle.id].shift
 				#print("no{1} realshift{0}".format(realshift,circle.id))

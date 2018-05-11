@@ -6,11 +6,11 @@ class Account(KBEngine.Entity):
 		KBEngine.Entity.__init__(self)
 		DEBUG_MSG("account create cell success!")
 		self.debug_owner=False
-		
+		self.client.cellReady(self.gameMode)
 		#KBEngine.entities[self.WarFieldId].playerSignIn(self.id)
 		#KBEngine.entities[self.WarFieldId].newUnit(0,0.0,0.0,self.id)
 
-	def p_addnewUnit(self,unitNo,rolekind,skillList,posx,posy,oid):
+	def p_addnewUnit(self,unitNo,rolekind,skillList,posx,posy,oid,maxHp):
 		DEBUG_MSG("in p_addnewUnit unitNo is {0} list{1}".format(unitNo,skillList))
 		units=KBEngine.entities[self.WarFieldId].units
 		#for unit in units:
@@ -23,7 +23,7 @@ class Account(KBEngine.Entity):
 					#break
 		DEBUG_MSG("addNewUnit position float({0},{1}) int({2},{3})".format(float(posx),float(posy),posx,posy))
 		DEBUG_MSG("rolekind{0} skillList{1}".format(rolekind,skillList))
-		self.client.addNewUnit(unitNo,rolekind,{"list":skillList},float(posx),float(posy),oid)
+		self.client.addNewUnit(unitNo,rolekind,{"list":skillList},float(posx),float(posy),oid,maxHp)
 	#client=>server呼叫的方法==============================================================
 	def clientloadingReady(self,expose):
 		KBEngine.entities[self.WarFieldId].playerSignIn(self.id)

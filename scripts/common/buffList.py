@@ -7,6 +7,10 @@ class Buff:
 		self.creater=creater#状态制造者
 	def start(self):
 		pass
+	def update(self,time):
+		pass
+	def befDelete(self):
+		pass
 class burn(Buff):
 	actionTime=1;
 	@staticmethod
@@ -70,3 +74,22 @@ class coma(Buff):
 			self.unit.canSkill=True
 			self.unit.canMove=True
 			self.unit.deleteBuff(self)
+class temporaryShield(Buff):
+	num=1
+	@staticmethod
+	def no():
+		return 3
+	def befDamage(self,damage):
+		if damage.num>self.num:
+			damage.num-=self.num
+		else:
+			damage.num=0
+		self.num-=damage.num
+		if self.num<=0:
+			self.unit.deleteBuff(self)
+	def start(self):
+		if(self.unit.f_beforeTakeDamage == None):
+			self.unit.f_beforeTakeDamage=[]
+		self.unit.f_beforeTakeDamage.append(self.befDamage)
+	def befDelete(self):
+		self.unit.f_beforeTakeDamage.remove(self.befDamage)

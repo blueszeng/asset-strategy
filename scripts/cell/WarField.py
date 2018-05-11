@@ -7,9 +7,13 @@ from AI import Event
 from skilllist import skillList
 from skill import Skill
 from damage import Damage
+from gridMaskCreater import gridMaskCreater
 import skillNumberList
 import buffList
 import trapList
+import random
+from gridMaskCreater import gridMaskCreater
+from gridMaskCreater import Map1
 
 unit_radiu=2
 #default_debug=[Vector2(5.0,5.0),Vector2(5.0,-5.0),Vector2(-5.0,5.0)]#用于除错阶段
@@ -410,6 +414,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.buffs[buff.no()]=buff
 		self.events.append(Event(self.manager.addBuff,buff.no()))
 	def deleteBuff(self,buff):
+		buff.befDelete()
 		self.disabledBuffNo.append(buff.no())
 		self.events.append(Event(self.manager.deleteBuff,buff.no()))
 class roundCount:
@@ -423,22 +428,23 @@ class roundCount:
 		self.beginTrap=[]
 		self.totalEnd=[]
 	def nextround(self):
-		if not self.roundCount==0:
+		if not self.roundCount==0:#第一回合之前没有回合结束所以这边做一个判断
 			index=self.roundCount%len(self.roleNoList)#round数量mod总玩家数得到当前应该是第几个玩家
 			for function in self.roundEnd:
 				function(self.roleNoList[index])
 		self.roundCount+=1
-		if(self.roundCount>self.Max):
+		if(self.roundCount>self.Max):#如果当前回合数比总回合数还大
 			for function in self.totalEnd:
 				function()
 		else:
 			index=self.roundCount%len(self.roleNoList)
-			print("in round start len is:{0}".format(len(self.roundStart)))
+			print("in round start roleNoList is {0} index {1}".format(self.roleNoList,index))
 			for function in self.roundStart:
 				function(self.roleNoList[index])
 class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
 		if not no in self.shiftRecord.keys():#這個防呆是因為出現過,因為center改變的反射導致space 的record改變,同一個circle被計算shift兩次
+			print("no{0} set shift".format(no))
 			self.shiftRecord[no]=[x,y]
 		#DEBUG_MSG("in shift record no{1} shift is {0}".format(self.shiftRecord[no],no))
 	def gameStart(self):
@@ -450,7 +456,9 @@ class WarField(KBEngine.Entity):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
 		DEBUG_MSG("WarField Cell done")
-		self.space=XYCollied(2,4,-4*unit_radiu,-8*unit_radiu,4*unit_radiu,4*unit_radiu,self.shiftCallBack)#圆半径是10,格子宽度是两个圆也就是10*2 *2
+		self.space=XYCollied(2,4,-4*unit_radiu,-8*unit_radiu,4*unit_radiu,4*unit_radiu,self.shiftCallBack)#圆半径是2,格子宽度是两个圆也就是2*2 *2
+		self.girdMask=gridMaskCreater(-4*unit_radiu,-8*unit_radiu,unit_radiu,unit_radiu,8,16)
+		self.bonusNos=[1,1,1]#用于创建额外奖励陷阱,这里放置陷阱的编号
 		#设置round
 		self.units=[]
 		self.traps=[]#记录陷阱物件
@@ -497,6 +505,8 @@ class WarField(KBEngine.Entity):
 				if record.update(self.cycle):
 					self.resigns.remove(record)
 			print("record end")
+			for trap in self.traps:
+					trap.update(self.cycle)
 			#主動技能觸發
 			for unit in self.units:
 				for s in unit.skills:
@@ -551,18 +561,20 @@ class WarField(KBEngine.Entity):
 		self.units.append(newone)
 		for pid in self.playerIds:
 			DEBUG_MSG("pid is {0}".format(pid))
-			KBEngine.entities[pid].p_addnewUnit(unitNo,rolekind,skillNumberList.list[rolekind],posx,posy,ownerid)
+			KBEngine.entities[pid].p_addnewUnit(unitNo,rolekind,skillNumberList.list[rolekind],posx,posy,ownerid,p[2])
 			#KBEngine.entities[pid].client.int64({"list":[90,99]})
 	def KillUnit(self,unit):
+		#self.run=False#暂停下来除错
 		self.units.remove(unit)
-	def createTrap(self,trapKind,posx,posy,ownerId):
-		self.traps.append(trapList.trapList[trapKind](self,self.trapCount,ownerId))
+	def createTrap(self,trapKind,posx,posy,ownerId,befCounter=False):#befGameStart表示是否是玩家回合开始之前的额外陷阱
+		newone= trapList.trapList[trapKind](self, self.trapCount, ownerId, Vector2(posx,posy))
+		self.traps.append(newone)
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_createTrap(trapKind,self.trapCount,(posx,posy),ownerId)
 		self.trapCount+=1
-		if not self.rCounter==None:
-			self.rCounter.nextround()
-		
+		if not self.rCounter==None and not befCounter:
+			newone.afterBeenCreate(self.rCounter)
+		return newone
 	def delTrap(self,trapNo):
 		for trap in self.traps:
 			if trap.no == trapNo:
@@ -571,20 +583,33 @@ class WarField(KBEngine.Entity):
 				for pid in self.playerIds:
 					KBEngine.entities[pid].p_deleteTrap(trapNo)
 				return
-
+	def setBonus(self):
+		vaildGrids=self.girdMask.getIdleGridList()
+		slice = random.sample(vaildGrids, len(self.bonusNos))
+		for no in self.bonusNos:
+			grid=slice[0]
+			self.createTrap(no,grid.centerPos[0],grid.centerPos[1],-1,True)
+			slice.remove(grid)
 	def playerSignIn(self,pid):
 		self.playerIds.append(pid)
 		if len(self.playerIds)>=self.playerNum:#如果已经有和预计人数一样多的玩家时
 			if self.rCounter == None:#建新回合计数器
 				if self.mode == 0:
-					self.rCounter=roundCount([self.playerIds[0],4747],10)
+					self.rCounter=roundCount([self.playerIds[0]],10)
+					self.rCounter.roundEnd.append(KBEngine.entities[self.playerIds[0]].debugTeam)
 				else:
 					self.rCounter=roundCount(self.playerIds[:],10)
 					print("after bulid rCounter playerIds is{0}".format(self.playerIds))
 				for id in self.playerIds:
 					self.rCounter.roundStart.append(KBEngine.entities[id].client.roundBegin)
-				self.rCounter.totalEnd.append(self.gameStart)
-				self.rCounter.nextround()
+			self.rCounter.totalEnd.append(self.gameStart)
+			for item in Map1:
+				pos=item.getCenter(self.girdMask.grids)
+				self.createTrap(2,pos[0],pos[1],-1,True)
+				item.enteMask(self.girdMask.grids,item)
+			self.setBonus()
+			print("in playerSignIn len is"+str(len(self.playerIds)))
+			self.rCounter.nextround()
 		#self.run=True
 	def playerSignOut(self,pid):
 		self.playerIds.remove(pid)

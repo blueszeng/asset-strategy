@@ -14,6 +14,12 @@
 			<Default>	-1	</Default>
 			<Persistent>	false	</Persistent>
 		</WarFieldId>
+		<gameMode>
+			<Type>	INT32		</Type>
+			<Flags>	CELL_PRIVATE	</Flags>
+			<Default>	-1	</Default>
+			<Persistent>	false	</Persistent>
+		</gameMode>
 	</Properties>
 
 	<ClientMethods>
@@ -27,6 +33,7 @@
 			<Arg>		FLOAT		</Arg>
 			<Arg>		FLOAT		</Arg>
 			<Arg>		INT64		</Arg>
+			<Arg>		INT16		</Arg><!--血量最大值用于创建血条-->
 		</addNewUnit>
 		<int64>
 			<Arg>	SkillList		</Arg>
@@ -83,6 +90,10 @@
 			<Arg>		INT16		</Arg>
 			<Arg>		INT8		</Arg>
 		</createEffection>
+		<createEffectionAt>
+			<Arg>		INT16		</Arg>
+			<Arg>		VECTOR2		</Arg>
+		</createEffectionAt>
 		<addTrap>
 			<Arg>		INT16		</Arg>
 			<Arg>		INT8		</Arg>

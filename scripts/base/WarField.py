@@ -20,8 +20,9 @@ class WarField(KBEngine.Base):
 			print("in WarField get cell aBase id:{0}".format(aBase.id))
 			aBase.state=2#account进入游戏中状态
 			aBase.cellData["WarFieldId"]=self.id
+			aBase.cellData["gameMode"]=self.mode
 			aBase.createCellEntity(self.cell)
-			aBase.client.cellReady(self.mode)
+			#aBase.client.cellReady(self.mode)
 		self.preLoadList.clear()
 	def onLoseCell(self):
 		self.destroy(False,False)
