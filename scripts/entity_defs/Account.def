@@ -20,6 +20,12 @@
 			<Default>	-1	</Default>
 			<Persistent>	false	</Persistent>
 		</gameMode>
+		<teamateNos>
+			<Type>	ARRAY	<of>	INT16	</of>	</Type>
+			<Flags>	OWN_CLIENT	</Flags>
+			<Default>	None	</Default>
+			<Persistent>	true	</Persistent>
+		</teamateNos>
 	</Properties>
 
 	<ClientMethods>

@@ -6,4 +6,11 @@
 			</list>
 		</Properties>
 	</SkillList>
+	<roleList>FIXED_DICT
+		<Properties>
+			<list>
+				<Type>	ARRAY	<of>	UINT16	</of>	</Type>
+			</list>
+		</Properties>
+	</roleList>
 </root>

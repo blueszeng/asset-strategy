@@ -419,7 +419,7 @@ class unit:#单位物件包扩圆+转向+属性+事件
 		self.events.append(Event(self.manager.deleteBuff,buff.no()))
 class roundCount:
 	def __init__(self,nolist,round):
-		self.roleNoList=nolist
+		self.playerNos=nolist
 		self.roundCount=0
 		self.Max=round
 		print("in roundCount`s __init__ {0}".format(self.Max))
@@ -429,18 +429,18 @@ class roundCount:
 		self.totalEnd=[]
 	def nextround(self):
 		if not self.roundCount==0:#第一回合之前没有回合结束所以这边做一个判断
-			index=self.roundCount%len(self.roleNoList)#round数量mod总玩家数得到当前应该是第几个玩家
+			index=self.roundCount%len(self.playerNos)#round数量mod总玩家数得到当前应该是第几个玩家
 			for function in self.roundEnd:
-				function(self.roleNoList[index])
+				function(self.playerNos[index])
 		self.roundCount+=1
 		if(self.roundCount>self.Max):#如果当前回合数比总回合数还大
 			for function in self.totalEnd:
 				function()
 		else:
-			index=self.roundCount%len(self.roleNoList)
-			print("in round start roleNoList is {0} index {1}".format(self.roleNoList,index))
+			index=self.roundCount%len(self.playerNos)
+			print("in round start playerNos is {0} index {1}".format(self.playerNos,index))
 			for function in self.roundStart:
-				function(self.roleNoList[index])
+				function(self.playerNos[index])
 class WarField(KBEngine.Entity):
 	def shiftCallBack(self,no,x,y):
 		if not no in self.shiftRecord.keys():#這個防呆是因為出現過,因為center改變的反射導致space 的record改變,同一個circle被計算shift兩次
@@ -595,13 +595,13 @@ class WarField(KBEngine.Entity):
 		if len(self.playerIds)>=self.playerNum:#如果已经有和预计人数一样多的玩家时
 			if self.rCounter == None:#建新回合计数器
 				if self.mode == 0:
-					self.rCounter=roundCount([self.playerIds[0]],10)
+					self.rCounter=roundCount([self.playerIds[0],4747],10)
 					self.rCounter.roundEnd.append(KBEngine.entities[self.playerIds[0]].debugTeam)
 				else:
 					self.rCounter=roundCount(self.playerIds[:],10)
 					print("after bulid rCounter playerIds is{0}".format(self.playerIds))
 				for id in self.playerIds:
-					self.rCounter.roundStart.append(KBEngine.entities[id].client.roundBegin)
+					self.rCounter.roundStart.append(KBEngine.entities[id].p_roundBegin)
 			self.rCounter.totalEnd.append(self.gameStart)
 			for item in Map1:
 				pos=item.getCenter(self.girdMask.grids)
@@ -612,7 +612,8 @@ class WarField(KBEngine.Entity):
 			self.rCounter.nextround()
 		#self.run=True
 	def playerSignOut(self,pid):
-		self.playerIds.remove(pid)
+		if pid in self.playerIds:
+			self.playerIds.remove(pid)
 		if len(self.playerIds)<=0:
 			self.destroy()
 	def setSpeed(self,new):

@@ -6,7 +6,13 @@ class Account(KBEngine.Entity):
 		KBEngine.Entity.__init__(self)
 		DEBUG_MSG("account create cell success!")
 		self.debug_owner=False
+		DEBUG_MSG("so teamateNos == [] {0}".format(self.teamateNos==[]))
+		
+		if len(self.teamateNos) == 0:
+			DEBUG_MSG("enter give values")
+			self.teamateNos=[0,1,2,3,4]
 		self.client.cellReady(self.gameMode)
+		DEBUG_MSG("so teamateNos is {0}".format(self.teamateNos))
 		#KBEngine.entities[self.WarFieldId].playerSignIn(self.id)
 		#KBEngine.entities[self.WarFieldId].newUnit(0,0.0,0.0,self.id)
 
@@ -27,6 +33,7 @@ class Account(KBEngine.Entity):
 	#client=>server呼叫的方法==============================================================
 	def clientloadingReady(self,expose):
 		KBEngine.entities[self.WarFieldId].playerSignIn(self.id)
+		self.teamateNos=self.teamateNos#等于将teamNos传给客户端
 	def move(self,expose,pos):
 		center=self.Slave.circle.center
 		self.Slave.direct=[pos[0]-center.x,pos[1]-center.y]
@@ -96,9 +103,18 @@ class Account(KBEngine.Entity):
 		self.client.died()
 	def p_setcanMove(self,m):
 		self.client.setcanMove(m)
-	def p_createEffection(self,effNo,tragetNo):
-		self.client.createEffection(effNo,tragetNo)
+	def p_createEffection(self,effNo,noORpos):
+		print("in p_createEffection arg type is "+str(type(noORpos)))
+		if type(noORpos)==tuple:
+			self.client.createEffectionAt(effNo,noORpos)
+		else:
+			self.client.createEffection(effNo,noORpos)
 	def p_createTrap(self,kind,index,pos,ownerid):
 		self.client.addTrap(kind,index,pos,ownerid)
 	def p_deleteTrap(self,index):
 		self.client.delTrap(index)
+	def p_roundBegin(self,playerNo):
+		if	playerNo==4747:
+			self.client.roundBegin(self.id)
+		else:
+			self.client.roundBegin(playerNo)
