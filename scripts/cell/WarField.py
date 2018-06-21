@@ -14,6 +14,7 @@ import trapList
 import random
 from gridMaskCreater import gridMaskCreater
 from gridMaskCreater import Map1
+import ActionCardList
 
 unit_radiu=2
 #default_debug=[Vector2(5.0,5.0),Vector2(5.0,-5.0),Vector2(-5.0,5.0)]#用于除错阶段
@@ -465,6 +466,7 @@ class WarField(KBEngine.Entity):
 		self.cemetery=[]#存放死去的单位
 		self.resigns=[]#延迟触发记录
 		self.playerIds=[]
+		self.actionTemplates=ActionCardList.getList(self)
 		self.cycle=0.1#更新周期
 		self.timerId=self.addTimer(0.1,0.1,0)
 		self.shiftRecord={}
@@ -669,6 +671,10 @@ class WarField(KBEngine.Entity):
 	def setcanMove(self,TF):
 		for pid in self.playerIds:
 			KBEngine.entities[pid].p_setcanMove(TF)
+	def transmission(self,roleNo,position):
+		self.getUnit(roleNo).circle.center=position
+		for pid in self.playerIds:
+			KBEngine.entities[pid].p_transmission(roleNo,(position.x,position.y))
 	def signUpTime(self,time,function,arg):
 		self.resigns.append(time_resign(time,function,arg))
 	def signUpArrow(self,speed,traget,oriPos,function,arg):

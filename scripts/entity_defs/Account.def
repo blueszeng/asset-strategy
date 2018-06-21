@@ -112,6 +112,13 @@
 		<roundBegin>
 			<Arg>		INT32		</Arg>
 		</roundBegin>
+		<TransmissionRoleTo>
+			<Arg>		INT8		</Arg>
+			<Arg>		VECTOR2		</Arg>
+		</TransmissionRoleTo>
+		<actionFinish>
+			<Arg>		INT16		</Arg>
+		</actionFinish>
 	</ClientMethods>
 
 	<BaseMethods>
@@ -150,6 +157,23 @@
 		<clientloadingReady>
 			<Exposed/>
 		</clientloadingReady>
+		
+		<actionCardUnitOnly>
+			<Exposed/>
+			<Arg>		INT16		</Arg>
+			<Arg>		INT8		</Arg>
+		</actionCardUnitOnly>
+		<actionCardUnitList>
+			<Exposed/>
+			<Arg>		INT16		</Arg>
+			<Arg>		SkillList	</Arg>
+		</actionCardUnitList>
+		<actionCardUnitPos>
+			<Exposed/>
+			<Arg>		INT16		</Arg>
+			<Arg>		INT8		</Arg>
+			<Arg>		VECTOR2		</Arg>
+		</actionCardUnitPos>
 	</CellMethods>
 
 </root>

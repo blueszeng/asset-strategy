@@ -1,6 +1,7 @@
 import KBEngine
 import Math
 from KBEDebug import *
+import ActionCardList
 class Account(KBEngine.Entity):
 	def __init__(self):
 		KBEngine.Entity.__init__(self)
@@ -118,3 +119,19 @@ class Account(KBEngine.Entity):
 			self.client.roundBegin(self.id)
 		else:
 			self.client.roundBegin(playerNo)
+	def p_transmission(self,roleNo,position):
+		self.client.TransmissionRoleTo(roleNo,position)
+	def actionCardUnitOnly(self,expose,actionNo,unitNo):
+		dict={}
+		dict["unitNo"]=unitNo
+		KBEngine.entities[self.WarFieldId].actionTemplates[actionNo].action(dict)
+	def actionCardUnitList(self,expose,actionNo,unitNos):
+		dict={}
+		dict["unitNoList"]=unitNos
+		KBEngine.entities[self.WarFieldId].actionTemplates[actionNo].action(dict)
+		
+	def actionCardUnitPos(self,expose,actionNo,unitNo,pos):
+		dict={}
+		dict["unitNo"]=unitNo
+		dict["position"]=pos
+		KBEngine.entities[self.WarFieldId].actionTemplates[actionNo].action(dict)
